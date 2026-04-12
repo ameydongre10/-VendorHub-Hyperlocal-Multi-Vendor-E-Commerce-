@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Analytics - Admin</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 { color: #666; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 1.8rem; font-weight: bold; color: #333; margin: 0; }
+        .currency { color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Admin Analytics</h1>
+        <nav>
+            <a href="dashboard.html">Overview</a>
+            <a href="vendor-requests.html">Vendor Requests</a>
+            <a href="analytics.html" class="active">Analytics</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-container">
+        <h2>Platform Performance</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Gross Sales</h3>
+                <p class="currency">$<span id="total-sales">0.00</span></p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <p id="total-orders">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Platform Revenue (10%)</h3>
+                <p class="currency">$<span id="platform-revenue">0.00</span></p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../../assets/js/admin-app.js"></script>
+</body>
+</html>

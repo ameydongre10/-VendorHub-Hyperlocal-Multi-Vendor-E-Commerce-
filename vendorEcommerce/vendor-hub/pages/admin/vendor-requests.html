@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Requests - Admin</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <nav>
+            <a href="dashboard.html">Overview</a>
+            <a href="vendor-requests.html" class="active">Vendor Requests</a>
+            <a href="analytics.html">Analytics</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-container">
+        <h2>Pending Vendor Approvals</h2>
+        
+        <table id="requests-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Date Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="vendor-list">
+                </tbody>
+        </table>
+
+        <div id="no-requests" style="display: none; text-align: center; padding: 2rem;">
+            <p>No pending vendor requests at this time.</p>
+        </div>
+    </main>
+
+    <script type="module" src="../../assets/js/admin-app.js"></script>
+</body>
+</html>

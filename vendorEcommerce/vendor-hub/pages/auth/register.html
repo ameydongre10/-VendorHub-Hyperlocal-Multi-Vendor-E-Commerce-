@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join VendorHub | Next-Gen Marketplace</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/auth.css">
+    <style>
+        /* Techfest-Style Overrides */
+        .auth-container {
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            background: rgba(10, 10, 10, 0.8) !important;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif; /* Futuristic Font */
+            letter-spacing: 4px;
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #4facfe;
+            background: transparent;
+            color: #4facfe;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .role-btn.active {
+            background: #4facfe;
+            color: white;
+            box-shadow: 0 0 15px #4facfe;
+        }
+
+        input {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important;
+            padding: 12px !important;
+        }
+
+        input:focus {
+            border-color: #00f2fe !important;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Initiate Account</h2>
+        <div class="role-selector">
+            <button type="button" class="role-btn active" onclick="setRole('buyer', this)">Buyer</button>
+            <button type="button" class="role-btn" onclick="setRole('seller', this)">Seller</button>
+        </div>
+
+        <form id="register-form">
+            <div class="form-group">
+                <input type="text" id="reg-name" placeholder="Full Name" required>
+            </div>
+            <div class="form-group">
+                <input type="email" id="reg-email" placeholder="Email Address" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="reg-password" placeholder="Create Password" required>
+            </div>
+            <button type="submit" class="auth-btn">Authorize Registration</button>
+        </form>
+        <p class="auth-footer">Already a member? <a href="login.html" style="color:#00f2fe">Access Portal</a></p>
+    </div>
+
+    <div class="video-bg">
+        <video autoplay muted loop playsinline>
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-blue-and-purple-lines-20707-large.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <script type="module">
+        import { registerUser } from "../../assets/js/modules/auth.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+
+        let selectedRole = 'buyer';
+
+        window.setRole = (role, btn) => {
+            selectedRole = role;
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        };
+
+        initParallax();
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = "Processing...";
+
+            const userData = {
+                name: document.getElementById('reg-name').value,
+                role: selectedRole
+            };
+
+            const res = await registerUser(
+                document.getElementById('reg-email').value,
+                document.getElementById('reg-password').value,
+                userData
+            );
+
+            if (res.success) {
+                alert("Account Created! Re-routing to Dashboard...");
+                window.location.href = selectedRole === 'seller' ? "../seller/dashboard.html" : "../buyer/shop.html";
+            } else {
+                alert("Error: " + res.error);
+                btn.innerText = "Authorize Registration";
+            }
+        });
+    </script>
+</body>
+</html>

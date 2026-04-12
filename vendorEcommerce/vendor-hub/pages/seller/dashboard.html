@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - VendorHub</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub</h3>
+            <ul>
+                <li><a href="dashboard.html" class="active">Overview</a></li>
+                <li><a href="inventory.html">My Products</a></li>
+                <li><a href="add-product.html">Add Product</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <header>
+                <h2>Seller Overview</h2>
+                <div id="vendor-info"></div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Earnings</h4>
+                    <p id="stat-earnings">$0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Orders</h4>
+                    <p id="stat-orders">0</p>
+                </div>
+            </div>
+
+            <section id="alerts">
+                <h3>Low Stock Alerts</h3>
+                <ul id="stock-alerts-list"></ul>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+    import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+    import { getVendorStats, getLowStockProducts } from "../../assets/js/modules/vendor.js";
+
+    // Use your custom checkAuthState which looks at localStorage
+    checkAuthState(async (user) => {
+        if (user && user.role === 'seller') {
+            // Check if seller is approved
+            if (user.status !== 'approved') {
+                alert("Your account is pending approval.");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            // Load Stats
+            try {
+                const stats = await getVendorStats(user.uid);
+                document.getElementById('stat-earnings').innerText = `$${(stats.totalEarnings - stats.commissionDeducted).toFixed(2)}`;
+                document.getElementById('stat-orders').innerText = stats.orderCount;
+
+                // Load Low Stock Alerts
+                const lowStock = await getLowStockProducts(user.uid);
+                const list = document.getElementById('stock-alerts-list');
+                list.innerHTML = ""; // Clear existing
+                
+                if (lowStock.length === 0) {
+                    list.innerHTML = "<li>All products are well stocked!</li>";
+                } else {
+                    lowStock.forEach(p => {
+                        const li = document.createElement('li');
+                        li.style.color = "red";
+                        li.innerText = `${p.name} is low on stock (${p.stock} left)`;
+                        list.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading dashboard stats:", error);
+            }
+        } else {
+            // No session or wrong role
+            window.location.href = "../auth/login.html";
+        }
+    });
+
+    // Add logout functionality if you have a logout link/button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            logoutUser().then(() => window.location.href = "../auth/login.html");
+        });
+    }
+
+    import { getVendorOrders, updateOrderStatus } from "../../assets/js/modules/orders.js";
+
+async function renderVendorOrders(vendorId) {
+    const orders = await getVendorOrders(vendorId);
+    const container = document.getElementById('vendor-orders-container');
+    
+    container.innerHTML = orders.map(order => `
+        <div class="order-item">
+            <span>Order #${order.id} - $${order.totalAmount}</span>
+            <select onchange="changeStatus('${order.id}', this.value)">
+                <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
+                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+        </div>
+    `).join('');
+}
+
+window.changeStatus = async (id, status) => {
+    const res = await updateOrderStatus(id, status);
+    if (res.success) alert("Status updated!");
+};
+    </script>
+</body>
+</html>

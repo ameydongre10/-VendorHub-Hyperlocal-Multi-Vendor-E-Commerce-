@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory | VendorHub Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <style>
+        /* Table to Glass-List Transformation */
+        .inventory-container {
+            background: var(--glass-fill);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .inventory-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 1.5rem;
+            background: rgba(0, 210, 255, 0.1);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            color: var(--accent-primary);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 1.2rem 1.5rem;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.3s;
+        }
+
+        .inventory-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .stock-alert {
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            font-weight: bold;
+        }
+
+        .btn-action-delete {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-family: 'Rajdhani', sans-serif;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-action-delete:hover {
+            background: #ff4444;
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub</h3>
+            <ul>
+                <li><a href="dashboard.html">Overview</a></li>
+                <li><a href="inventory.html" class="active">My Products</a></li>
+                <li><a href="add-product.html">Add New</a></li>
+                <li><a href="#" id="logout-btn">Logout</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <header style="margin-bottom: 2rem;">
+                <h2>Inventory Management</h2>
+                <p style="color: rgba(255,255,255,0.5);">Manage your listed assets and stock levels</p>
+            </header>
+            
+            <div class="inventory-container stat-card">
+                <div class="inventory-header">
+                    <span>Product Asset</span>
+                    <span>Unit Price</span>
+                    <span>Stock Level</span>
+                    <span>Operations</span>
+                </div>
+                <div id="inventory-table-body">
+                    <div style="padding: 40px; text-align: center; color: var(--accent-primary);">Synchronizing with Database...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { getVendorProducts, deleteProduct } from "../../assets/js/modules/products.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+
+        async function refreshInventory(uid) {
+            const products = await getVendorProducts(uid);
+            const container = document.getElementById('inventory-table-body');
+            
+            if (products.length === 0) {
+                container.innerHTML = `<div style="padding:40px; text-align:center;">No assets found in terminal.</div>`;
+                return;
+            }
+
+            container.innerHTML = products.map(p => `
+                <div class="inventory-row">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${p.image || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">
+                        <strong>${p.name}</strong>
+                    </div>
+                    <span style="color: var(--accent-primary);">$${p.price}</span>
+                    <span class="${p.stock < 5 ? 'stock-alert' : ''}">${p.stock} Units</span>
+                    <div>
+                        <button class="btn-action-delete" onclick="handleDelete('${p.id}')">Decommission</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Re-apply 3D tilt to new elements
+            initParallax();
+        }
+
+        window.handleDelete = async (id) => {
+            if(confirm("Confirm asset decommissioning? This cannot be undone.")) {
+                const res = await deleteProduct(id);
+                if(res.success) {
+                    alert("Asset Removed.");
+                    location.reload();
+                } else {
+                    alert("Operation Failed: " + res.error);
+                }
+            }
+        };
+
+        checkAuthState((user) => {
+            if (user && user.role === 'seller') {
+                refreshInventory(user.uid);
+            } else {
+                window.location.href = "../auth/login.html";
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser().then(() => window.location.href = "../auth/login.html");
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+/* Premium 3D Effects */
+:root {
+    --glass-grad: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+}
+
+/* 3D Moving Gradient Background */
+body {
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Glassmorphism Containers */
+.dashboard-wrapper, .auth-container {
+    background: var(--glass-grad);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Glowing Interactive Buttons */
+.auth-btn, .btn-primary {
+    position: relative;
+    z-index: 1;
+    transition: 0.4s;
+}
+
+.auth-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, #ff00cc, #3333ff);
+    z-index: -1;
+    filter: blur(15px);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.auth-btn:hover::before {
+    opacity: 1;
+}
+/* Add to assets/css/style.css */
+@keyframes glow {
+    0% { box-shadow: 0 0 5px #00f2fe; }
+    50% { box-shadow: 0 0 25px #4facfe, 0 0 50px #00f2fe; }
+    100% { box-shadow: 0 0 5px #00f2fe; }
+}
+
+.auth-btn {
+    animation: glow 3s infinite alternate;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+:root {
+    /* The "Decent" Tech Palette */
+    --bg-deep: #0a0b10;          /* Very deep navy/black */
+    --accent-primary: #00d2ff;   /* Soft Electric Cyan */
+    --accent-secondary: #3a7bd5; /* Royal Blue */
+    --glass-fill: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(0, 210, 255, 0.2);
+    --text-glow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+body {
+    background-color: var(--bg-deep);
+    color: #ffffff;
+    /* Subtle moving mesh background instead of bright gradients */
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(58, 123, 213, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(0, 210, 255, 0.1) 0px, transparent 50%);
+}

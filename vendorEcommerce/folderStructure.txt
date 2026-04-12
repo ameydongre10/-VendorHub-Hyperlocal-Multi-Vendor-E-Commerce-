@@ -1,0 +1,46 @@
+vendor-hub/
+├── index.html                # Main Landing Page / Entry Point
+├── assets/                   # Static assets
+│   ├── css/
+│   │   ├── style.css         # Global styles & variables
+│   │   ├── auth.css          # Login/Signup specific styles
+│   │   ├── dashboard.css     # Shared dashboard layout (Admin/Seller)
+│   │   └── components.css    # Reusable UI components (buttons, cards)
+│   ├── images/               # Local icons and logos
+│   └── js/
+│       ├── config/
+│       │   ├── firebase-config.js  # Your Firebase initialization
+│       │   └── gemini-config.js    # Google Gemini AI setup
+│       ├── modules/                # Core logic broken into modules
+│       │   ├── auth.js             # Login, Signup, Logout, Auth State
+│       │   ├── products.js         # CRUD for products (Firestore)
+│       │   ├── orders.js           # Order placement & tracking logic
+│       │   ├── vendor.js           # Vendor-specific dashboard logic
+│       │   ├── admin.js            # Admin approval & analytics logic
+│       │   ├── ai-service.js       # Gemini API integration (search/recs)
+│       │   └── cart.js             # LocalStorage/Firestore cart logic
+│       ├── utils/
+│       │   ├── helpers.js          # Currency formatting, date parsers
+│       │   └── ui-render.js        # Functions to inject HTML into DOM
+│       ├── main.js                 # Main router/initializer for index.html
+│       ├── buyer-app.js            # Logic for buyer views
+│       ├── seller-app.js           # Logic for seller views
+│       └── admin-app.js            # Logic for admin views
+├── pages/                          # Separate HTML files for different views
+│   ├── auth/
+│   │   ├── login.html
+│   │   └── register.html
+│   ├── buyer/
+│   │   ├── shop.html
+│   │   ├── product-details.html
+│   │   ├── cart.html
+│   │   └── track-order.html
+│   ├── seller/
+│   │   ├── dashboard.html
+│   │   ├── add-product.html
+│   │   └── inventory.html
+│   └── admin/
+│       ├── dashboard.html
+│       ├── vendor-requests.html
+│       └── analytics.html
+└── .env (Optional)                 # To hide your API keys if using a bundler

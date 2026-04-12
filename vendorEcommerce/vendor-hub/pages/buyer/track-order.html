@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order - VendorHub</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <h2>Order Tracking</h2>
+        <div id="order-details" class="product-card">
+            <p>Loading order details...</p>
+        </div>
+        <div class="status-timeline">
+            <p>Current Status: <strong id="status-text">-</strong></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "../../assets/js/config/firebase-config.js";
+        import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+
+        if (orderId) {
+            onSnapshot(doc(db, "orders", orderId), (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    document.getElementById('status-text').innerText = data.status;
+                    document.getElementById('order-details').innerHTML = `
+                        <p>Order ID: ${doc.id}</p>
+                        <p>Total: $${data.totalAmount}</p>
+                        <p>Date: ${new Date(data.createdAt).toLocaleDateString()}</p>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

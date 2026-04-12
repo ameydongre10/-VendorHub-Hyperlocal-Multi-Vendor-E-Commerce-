@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - VendorHub</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <style>
+        .order-item {
+            background: #fff;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .order-item select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        #vendor-orders-container { margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub</h3>
+            <ul>
+                <li><a href="dashboard.html" class="active">Overview</a></li>
+                <li><a href="inventory.html">My Products</a></li>
+                <li><a href="add-product.html">Add Product</a></li>
+                <li><a href="#" id="logout-btn">Logout</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <header>
+                <h2>Seller Overview</h2>
+                <div id="vendor-info"></div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Earnings</h4>
+                    <p id="stat-earnings">$0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Orders</h4>
+                    <p id="stat-orders">0</p>
+                </div>
+            </div>
+
+            <section id="vendor-orders">
+                <h3>Recent Orders</h3>
+                <div id="vendor-orders-container">
+                    <p>Loading orders...</p>
+                </div>
+            </section>
+
+            <section id="alerts">
+                <h3>Low Stock Alerts</h3>
+                <ul id="stock-alerts-list"></ul>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+    import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+    import { getVendorStats, getLowStockProducts } from "../../assets/js/modules/vendor.js";
+    import { getVendorOrders, updateOrderStatus } from "../../assets/js/modules/orders.js";
+
+    checkAuthState(async (user) => {
+        if (user && user.role === 'seller') {
+            if (user.status !== 'approved') {
+                alert("Your account is pending approval.");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            try {
+                // 1. Load Stats
+                const stats = await getVendorStats(user.uid);
+                document.getElementById('stat-earnings').innerText = `$${(stats.totalEarnings - stats.commissionDeducted).toFixed(2)}`;
+                document.getElementById('stat-orders').innerText = stats.orderCount;
+
+                // 2. Load Low Stock Alerts
+                const lowStock = await getLowStockProducts(user.uid);
+                const list = document.getElementById('stock-alerts-list');
+                list.innerHTML = lowStock.length === 0 
+                    ? "<li>All products are well stocked!</li>" 
+                    : lowStock.map(p => `<li style="color:red">${p.name} is low on stock (${p.stock} left)</li>`).join('');
+
+                // 3. Load Vendor Orders
+                renderVendorOrders(user.uid);
+
+            } catch (error) {
+                console.error("Error loading dashboard data:", error);
+            }
+        } else {
+            window.location.href = "../auth/login.html";
+        }
+    });
+
+    async function renderVendorOrders(vendorId) {
+        const orders = await getVendorOrders(vendorId);
+        const container = document.getElementById('vendor-orders-container');
+        
+        if (orders.length === 0) {
+            container.innerHTML = "<p>No orders found for your products.</p>";
+            return;
+        }
+
+        container.innerHTML = orders.map(order => `
+            <div class="order-item">
+                <div>
+                    <strong>Order #${order.id.slice(-6)}</strong><br>
+                    <small>Total: $${order.totalAmount.toFixed(2)}</small>
+                </div>
+                <select onchange="changeStatus('${order.id}', this.value)">
+                    <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
+                    <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                    <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+            </div>
+        `).join('');
+    }
+
+    // Global function for the select dropdown
+    window.changeStatus = async (id, status) => {
+        const res = await updateOrderStatus(id, status);
+        if (res.success) {
+            alert("Order status updated to: " + status);
+        } else {
+            alert("Error: " + res.error);
+        }
+    };
+
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        logoutUser().then(() => window.location.href = "../auth/login.html");
+    });
+    </script>
+</body>
+</html>
