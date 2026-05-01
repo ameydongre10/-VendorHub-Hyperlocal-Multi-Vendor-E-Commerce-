@@ -3,147 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seller Dashboard - VendorHub</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <title>Shop – VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
     <style>
-        .order-item {
-            background: #fff;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        /* Buyer top bar */
+        .buyer-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: rgba(7,10,18,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            gap: 16px;
+            flex-wrap: wrap;
         }
-        .order-item select {
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+
+        .brand-link {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-decoration: none;
+            flex-shrink: 0;
         }
-        #vendor-orders-container { margin-top: 1rem; }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cart-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent-primary);
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-body {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
     </style>
 </head>
 <body>
-    <div class="dashboard-wrapper">
-        <aside>
-            <h3>VendorHub</h3>
-            <ul>
-                <li><a href="dashboard.html" class="active">Overview</a></li>
-                <li><a href="inventory.html">My Products</a></li>
-                <li><a href="add-product.html">Add Product</a></li>
-                <li><a href="#" id="logout-btn">Logout</a></li>
-            </ul>
-        </aside>
 
-        <main>
-            <header>
-                <h2>Seller Overview</h2>
-                <div id="vendor-info"></div>
-            </header>
+    <!-- Top Navigation Bar -->
+    <header class="buyer-topbar" role="banner">
+        <a href="../../index.html" class="brand-link" aria-label="VendorHub home">VendorHub</a>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h4>Total Earnings</h4>
-                    <p id="stat-earnings">$0</p>
-                </div>
-                <div class="stat-card">
-                    <h4>Orders</h4>
-                    <p id="stat-orders">0</p>
-                </div>
-            </div>
+        <div class="search-bar" style="flex:1;max-width:480px;" role="search">
+            <span aria-hidden="true">🔍</span>
+            <input
+                type="search"
+                id="search-input"
+                placeholder="Search products…"
+                aria-label="Search products"
+                autocomplete="off"
+            >
+        </div>
 
-            <section id="vendor-orders">
-                <h3>Recent Orders</h3>
-                <div id="vendor-orders-container">
-                    <p>Loading orders...</p>
-                </div>
-            </section>
+        <div class="topbar-right">
+            <a href="cart.html" class="btn btn-outline btn-sm cart-btn" aria-label="View cart">
+                🛒 Cart
+                <span class="cart-badge" id="cart-badge" aria-label="Items in cart"></span>
+            </a>
+            <button id="logout-btn" class="btn btn-sm" style="background:rgba(255,71,87,0.1);border:1px solid var(--danger);color:var(--danger);" aria-label="Logout">
+                Logout
+            </button>
+        </div>
+    </header>
 
-            <section id="alerts">
-                <h3>Low Stock Alerts</h3>
-                <ul id="stock-alerts-list"></ul>
-            </section>
-        </main>
-    </div>
+    <main class="page-body" role="main" aria-label="Product shop">
+
+        <!-- Category Filter Chips -->
+        <div class="filter-chips" id="filter-chips" role="group" aria-label="Filter by category">
+            <button class="chip active" data-category="all" aria-pressed="true">All</button>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="product-grid" id="product-grid" aria-label="Products"></div>
+
+    </main>
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script type="module">
-    import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
-    import { getVendorStats, getLowStockProducts } from "../../assets/js/modules/vendor.js";
-    import { getVendorOrders, updateOrderStatus } from "../../assets/js/modules/orders.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { fetchAllProducts } from "../../assets/js/modules/api-service.js";
+        import { addToCart, getCartCount, updateCartBadge } from "../../assets/js/modules/cart.js";
+        import { showToast, handleError } from "../../assets/js/modules/error-handler.js";
+        import { renderProductGrid, showSkeleton } from "../../assets/js/utils/ui-render.js";
+        import { debounce } from "../../assets/js/utils/helpers.js";
 
-    checkAuthState(async (user) => {
-        if (user && user.role === 'seller') {
-            if (user.status !== 'approved') {
-                alert("Your account is pending approval.");
-                window.location.href = "../auth/login.html";
+        let allProducts = [];
+        let activeCategory = 'all';
+        const grid = document.getElementById('product-grid');
+
+        // ── Auth Guard ──────────────────────────────────────────────────
+        checkAuthState((user) => {
+            if (!user) {
+                window.location.href = '../auth/login.html';
+                return;
+            }
+            init();
+        });
+
+        // ── Init ────────────────────────────────────────────────────────
+        async function init() {
+            updateCartBadge();
+            showSkeleton(grid, 8);
+
+            const result = await fetchAllProducts();
+
+            if (!result.success) {
+                handleError({ message: result.error }, 'shop:fetchProducts');
+                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+                    <div class="empty-icon">⚠️</div>
+                    <p>Failed to load products. Please refresh.</p>
+                </div>`;
                 return;
             }
 
-            try {
-                // 1. Load Stats
-                const stats = await getVendorStats(user.uid);
-                document.getElementById('stat-earnings').innerText = `$${(stats.totalEarnings - stats.commissionDeducted).toFixed(2)}`;
-                document.getElementById('stat-orders').innerText = stats.orderCount;
+            allProducts = result.data || [];
+            buildCategoryChips(allProducts);
+            renderFiltered();
+        }
 
-                // 2. Load Low Stock Alerts
-                const lowStock = await getLowStockProducts(user.uid);
-                const list = document.getElementById('stock-alerts-list');
-                list.innerHTML = lowStock.length === 0 
-                    ? "<li>All products are well stocked!</li>" 
-                    : lowStock.map(p => `<li style="color:red">${p.name} is low on stock (${p.stock} left)</li>`).join('');
+        // ── Category Chips ───────────────────────────────────────────────
+        function buildCategoryChips(products) {
+            const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
+            const container = document.getElementById('filter-chips');
+            container.innerHTML = categories.map(cat => `
+                <button class="chip ${cat === 'all' ? 'active' : ''}"
+                        data-category="${cat}"
+                        aria-pressed="${cat === 'all'}"
+                        style="text-transform:capitalize;">
+                    ${cat === 'all' ? 'All' : cat}
+                </button>`).join('');
 
-                // 3. Load Vendor Orders
-                renderVendorOrders(user.uid);
+            container.querySelectorAll('.chip').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    container.querySelectorAll('.chip').forEach(b => {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-pressed', 'false');
+                    });
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-pressed', 'true');
+                    activeCategory = btn.dataset.category;
+                    renderFiltered();
+                });
+            });
+        }
 
-            } catch (error) {
-                console.error("Error loading dashboard data:", error);
+        // ── Render with Filters ──────────────────────────────────────────
+        function renderFiltered() {
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            let products = activeCategory === 'all'
+                ? allProducts
+                : allProducts.filter(p => p.category === activeCategory);
+
+            if (query) {
+                products = products.filter(p =>
+                    (p.name || '').toLowerCase().includes(query) ||
+                    (p.description || '').toLowerCase().includes(query) ||
+                    (p.vendorName || '').toLowerCase().includes(query)
+                );
             }
-        } else {
-            window.location.href = "../auth/login.html";
-        }
-    });
 
-    async function renderVendorOrders(vendorId) {
-        const orders = await getVendorOrders(vendorId);
-        const container = document.getElementById('vendor-orders-container');
-        
-        if (orders.length === 0) {
-            container.innerHTML = "<p>No orders found for your products.</p>";
-            return;
+            renderProductGrid(grid, products, { showAddToCart: true });
         }
 
-        container.innerHTML = orders.map(order => `
-            <div class="order-item">
-                <div>
-                    <strong>Order #${order.id.slice(-6)}</strong><br>
-                    <small>Total: $${order.totalAmount.toFixed(2)}</small>
-                </div>
-                <select onchange="changeStatus('${order.id}', this.value)">
-                    <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
-                    <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                    <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                </select>
-            </div>
-        `).join('');
-    }
+        // ── Search ───────────────────────────────────────────────────────
+        document.getElementById('search-input').addEventListener(
+            'input',
+            debounce(renderFiltered, 250)
+        );
 
-    // Global function for the select dropdown
-    window.changeStatus = async (id, status) => {
-        const res = await updateOrderStatus(id, status);
-        if (res.success) {
-            alert("Order status updated to: " + status);
-        } else {
-            alert("Error: " + res.error);
-        }
-    };
+        // ── Add to Cart ──────────────────────────────────────────────────
+        window.addProductToCart = (productId) => {
+            const result = addToCart(productId);
+            if (result.added) {
+                showToast('Added to cart!', 'success');
+                updateCartBadge();
+            } else {
+                showToast('Already in your cart.', 'info');
+            }
+        };
 
-    document.getElementById('logout-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        logoutUser().then(() => window.location.href = "../auth/login.html");
-    });
+        // ── Logout ───────────────────────────────────────────────────────
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            logoutUser().then(() => {
+                window.location.href = '../auth/login.html';
+            });
+        });
     </script>
 </body>
 </html>

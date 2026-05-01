@@ -3,40 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track Order - VendorHub</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <title>Track Order – VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
+    <style>
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: rgba(7,10,18,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .brand-link {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-decoration: none;
+        }
+
+        .page-body {
+            max-width: 680px;
+            margin: 48px auto;
+            padding: 0 24px;
+        }
+
+        /* Progress Timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 32px;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 16px 0;
+            position: relative;
+        }
+
+        .timeline-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 52px;
+            bottom: 0;
+            width: 2px;
+            background: var(--glass-border);
+        }
+
+        .timeline-step.done::after { background: var(--accent-primary); }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--glass-border);
+            background: var(--bg-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+            transition: all var(--transition-normal);
+            z-index: 1;
+        }
+
+        .timeline-step.done .step-circle {
+            border-color: var(--accent-primary);
+            background: rgba(0, 210, 255, 0.12);
+            box-shadow: var(--accent-glow);
+        }
+
+        .timeline-step.active .step-circle {
+            border-color: var(--warning);
+            background: rgba(245, 166, 35, 0.12);
+            animation: pulseGlow 2s infinite;
+        }
+
+        .step-info h4 {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: none;
+            letter-spacing: 0;
+            margin-bottom: 2px;
+        }
+
+        .step-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <h2>Order Tracking</h2>
-        <div id="order-details" class="product-card">
-            <p>Loading order details...</p>
+
+    <header class="topbar" role="banner">
+        <a href="shop.html" class="brand-link" aria-label="Back to shop">← Shop</a>
+        <span style="font-family:var(--font-display);font-size:1rem;letter-spacing:3px;color:#fff;">ORDER TRACKING</span>
+        <span></span>
+    </header>
+
+    <main class="page-body" role="main">
+
+        <!-- Order Details Card -->
+        <div id="order-card" class="glass-card animate-in">
+            <div class="empty-state">
+                <div class="spinner" style="width:36px;height:36px;border-width:3px;"></div>
+                <p>Loading order details…</p>
+            </div>
         </div>
-        <div class="status-timeline">
-            <p>Current Status: <strong id="status-text">-</strong></p>
+
+        <!-- Timeline -->
+        <div class="timeline" id="status-timeline" aria-label="Order status timeline" role="list">
+            <!-- Populated by JS -->
         </div>
-    </div>
+
+    </main>
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script type="module">
-        import { db } from "../../assets/js/config/firebase-config.js";
-        import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { subscribeOrder } from "../../assets/js/modules/api-service.js";
+        import { handleError } from "../../assets/js/modules/error-handler.js";
+        import { formatCurrency, formatDate, statusBadgeClass } from "../../assets/js/utils/helpers.js";
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('orderId');
+        const STEPS = [
+            { key: 'Placed',    icon: '📦', label: 'Order Placed',    desc: 'Your order has been confirmed.' },
+            { key: 'Shipped',   icon: '🚚', label: 'Shipped',         desc: 'Your order is on its way.' },
+            { key: 'Delivered', icon: '✅', label: 'Delivered',       desc: 'Delivered successfully.' },
+        ];
 
-        if (orderId) {
-            onSnapshot(doc(db, "orders", orderId), (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    document.getElementById('status-text').innerText = data.status;
-                    document.getElementById('order-details').innerHTML = `
-                        <p>Order ID: ${doc.id}</p>
-                        <p>Total: $${data.totalAmount}</p>
-                        <p>Date: ${new Date(data.createdAt).toLocaleDateString()}</p>
-                    `;
-                }
+        const params  = new URLSearchParams(window.location.search);
+        const orderId = params.get('orderId');
+        const card    = document.getElementById('order-card');
+        const timeline = document.getElementById('status-timeline');
+
+        if (!orderId) {
+            card.innerHTML = `<div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <p>No order ID provided.</p>
+                <a href="shop.html" class="btn btn-outline btn-sm mt-md">Back to Shop</a>
+            </div>`;
+        } else {
+            const unsubscribe = subscribeOrder(orderId, (order) => {
+                renderOrder(order);
             });
         }
+
+        function renderOrder(order) {
+            const cancelled = order.status === 'Cancelled';
+
+            card.innerHTML = `
+                <div class="flex-between" style="margin-bottom:20px;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <h2 style="font-family:var(--font-body);font-size:1.2rem;text-transform:none;letter-spacing:0;margin-bottom:4px;">
+                            Order #${escHtml(order.id.slice(-8).toUpperCase())}
+                        </h2>
+                        <span style="font-size:0.8rem;color:var(--text-muted);">Placed ${formatDate(order.createdAt)}</span>
+                    </div>
+                    <span class="badge ${statusBadgeClass(order.status)}">${escHtml(order.status)}</span>
+                </div>
+                <div class="summary-row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="color:var(--text-secondary)">Items</span>
+                    <span style="color:#fff;font-weight:600;">${order.items ? order.items.length : 0}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:16px 0 0;font-size:1.1rem;font-weight:700;color:var(--accent-primary);">
+                    <span>Total</span>
+                    <span>${formatCurrency(order.totalAmount)}</span>
+                </div>`;
+
+            // Update timeline
+            if (cancelled) {
+                timeline.innerHTML = `
+                    <div class="timeline-step done">
+                        <div class="step-circle">❌</div>
+                        <div class="step-info">
+                            <h4>Order Cancelled</h4>
+                            <p>This order has been cancelled.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            const currentIdx = STEPS.findIndex(s => s.key === order.status);
+            timeline.innerHTML = STEPS.map((step, idx) => {
+                const done   = idx < currentIdx;
+                const active = idx === currentIdx;
+                return `
+                    <div class="timeline-step ${done ? 'done' : ''} ${active ? 'active' : ''}" role="listitem">
+                        <div class="step-circle" aria-hidden="true">${step.icon}</div>
+                        <div class="step-info">
+                            <h4>${step.label}</h4>
+                            <p>${step.desc}</p>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        const escHtml = (str) => {
+            const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
+            return String(str || '').replace(/[&<>"']/g, c => map[c]);
+        };
     </script>
 </body>
 </html>

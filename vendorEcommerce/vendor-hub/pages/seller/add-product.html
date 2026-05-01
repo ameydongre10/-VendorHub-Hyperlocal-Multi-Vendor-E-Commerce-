@@ -3,118 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product - VendorHub</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <title>Add Product – VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
+    <style>
+        .image-dropzone {
+            border: 2px dashed var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color var(--transition-fast), background var(--transition-fast);
+            position: relative;
+        }
+
+        .image-dropzone:hover,
+        .image-dropzone.drag-over {
+            border-color: var(--accent-primary);
+            background: rgba(0, 210, 255, 0.05);
+        }
+
+        .image-dropzone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: var(--radius-sm);
+            margin-top: 12px;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="inventory.html">Inventory</a>
-            <a href="#" id="logout-btn">Logout</a>
-        </nav>
-        
-        <main>
-            <h2>Add New Product</h2>
-            <form id="add-product-form">
-                <input type="text" id="p-name" placeholder="Product Name" required>
-                <textarea id="p-desc" placeholder="Description" required></textarea>
-                <input type="number" id="p-price" placeholder="Price" required>
-                <input type="number" id="p-stock" placeholder="Initial Stock" required>
-                <input type="text" id="p-category" placeholder="Category" required>
-                
-                <div class="upload-section">
-                    <input type="file" id="p-image" accept="image/*" required>
-                    <div id="image-preview" style="margin-top:10px; border:1px dashed #ccc; padding:10px; min-height:50px;">
-                        No image selected
-                    </div>
-                </div>
 
-                <button type="submit" id="submit-btn" style="margin-top:20px;">List Product</button>
-            </form>
-            <div id="status-msg" style="display:none; margin-top:20px; padding:10px; color:white; border-radius:4px;"></div>
+    <div class="mobile-nav">
+        <button class="hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <span style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent-primary);letter-spacing:2px;">VENDORHUB</span>
+        <span></span>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <div class="dashboard-wrapper">
+
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Seller navigation">
+            <div class="sidebar-brand">VendorHub</div>
+            <ul class="sidebar-nav" role="list">
+                <li><a href="dashboard.html">📊 Overview</a></li>
+                <li><a href="inventory.html">📦 My Products</a></li>
+                <li><a href="add-product.html" class="active" aria-current="page">➕ Add Product</a></li>
+                <li><a href="#" id="logout-btn">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content" role="main">
+            <div style="max-width:680px;">
+                <h2 style="margin-bottom:8px;">Add New Product</h2>
+                <p style="margin-bottom:32px;">Fill in the details below to list your product on the marketplace.</p>
+
+                <form id="add-product-form" class="glass-card" novalidate aria-label="Add product form">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="p-name">Product Name</label>
+                            <input type="text" id="p-name" class="form-control" placeholder="e.g. Handmade Soap" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p-category">Category</label>
+                            <input type="text" id="p-category" class="form-control" placeholder="e.g. Health & Beauty" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p-price">Price (USD)</label>
+                            <input type="number" id="p-price" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="p-stock">Initial Stock</label>
+                            <input type="number" id="p-stock" class="form-control" placeholder="0" min="0" step="1" required>
+                        </div>
+                        <div class="form-group col-span-2">
+                            <label for="p-desc">Description</label>
+                            <textarea id="p-desc" class="form-control" placeholder="Describe your product in detail…" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="form-group mt-md">
+                        <label>Product Image</label>
+                        <div class="image-dropzone" id="image-dropzone" role="button" aria-label="Upload product image">
+                            <input type="file" id="p-image" accept="image/*" aria-label="Choose product image">
+                            <div id="dropzone-content">
+                                <div style="font-size:2rem;margin-bottom:8px;" aria-hidden="true">📷</div>
+                                <p style="color:var(--text-secondary);font-size:0.9rem;">
+                                    Click or drag &amp; drop to upload an image
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn btn-primary btn-full mt-lg" aria-label="List product">
+                        List Product
+                    </button>
+
+                </form>
+            </div>
         </main>
     </div>
 
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <script type="module">
         import { addProduct } from "../../assets/js/modules/products.js";
-        import { logoutUser, checkAuthState } from "../../assets/js/modules/auth.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import {
+            showToast,
+            setButtonLoading,
+            resetButton,
+            validateForm,
+        } from "../../assets/js/modules/error-handler.js";
 
         let currentUser = null;
-        const statusMsg = document.getElementById('status-msg');
 
-        // Check Session
         checkAuthState((user) => {
             if (user && user.role === 'seller') {
                 currentUser = user;
             } else {
-                window.location.href = "../auth/login.html";
+                window.location.href = '../auth/login.html';
             }
         });
 
-        // Image Preview Logic
-        document.getElementById('p-image').addEventListener('change', function(e) {
+        // Image Preview
+        document.getElementById('p-image').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    document.getElementById('image-preview').innerHTML =
-                        `<img src="${event.target.result}" style="max-width:150px; border-radius:8px;">`;
-                }
-                reader.readAsDataURL(file);
-            }
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('dropzone-content').innerHTML =
+                    `<img src="${ev.target.result}" class="preview-img" alt="Preview">
+                     <p style="margin-top:8px;font-size:0.8rem;color:var(--text-muted);">${escHtml(file.name)}</p>`;
+            };
+            reader.readAsDataURL(file);
         });
 
-        // Form Submit Logic
+        // Drag-over highlight
+        const dz = document.getElementById('image-dropzone');
+        dz.addEventListener('dragover', () => dz.classList.add('drag-over'));
+        dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+        dz.addEventListener('drop', () => dz.classList.remove('drag-over'));
+
+        // Form Submit
         document.getElementById('add-product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
+            const isValid = validateForm([
+                { id: 'p-name',     label: 'Product Name', required: true },
+                { id: 'p-category', label: 'Category',     required: true },
+                { id: 'p-price',    label: 'Price',        required: true },
+                { id: 'p-stock',    label: 'Stock',        required: true },
+                { id: 'p-desc',     label: 'Description',  required: true },
+            ]);
+
+            if (!isValid) return;
+
             const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerText = "UPLOADING TO CLOUD...";
+            setButtonLoading(btn, 'Uploading…');
 
             try {
                 const productData = {
-                    name: document.getElementById('p-name').value,
-                    description: document.getElementById('p-desc').value,
-                    price: parseFloat(document.getElementById('p-price').value),
-                    stock: parseInt(document.getElementById('p-stock').value),
-                    category: document.getElementById('p-category').value,
-                    // Use the OR (||) operator to provide a fallback string
-                    vendorId: currentUser.uid || "unknown_id",
-                    vendorName: currentUser.name || "Local Vendor" 
+                    name:        document.getElementById('p-name').value.trim(),
+                    description: document.getElementById('p-desc').value.trim(),
+                    price:       parseFloat(document.getElementById('p-price').value),
+                    stock:       parseInt(document.getElementById('p-stock').value, 10),
+                    category:    document.getElementById('p-category').value.trim(),
+                    vendorId:    currentUser.uid,
+                    vendorName:  currentUser.name || 'Local Vendor',
                 };
 
-                const imageFile = document.getElementById('p-image').files[0];
+                const imageFile = document.getElementById('p-image').files[0] || null;
                 const res = await addProduct(productData, imageFile);
 
-                if(res.success) {
-                    statusMsg.style.display = "block";
-                    statusMsg.style.backgroundColor = "#4CAF50";
-                    statusMsg.innerHTML = "SUCCESS: PRODUCT_LISTED";
-                    
-                    document.getElementById('add-product-form').reset();
-                    document.getElementById('image-preview').innerHTML = "No image selected";
-                    
-                    setTimeout(() => { window.location.href = "inventory.html"; }, 1500);
+                if (res.success) {
+                    showToast('Product listed successfully!', 'success', 2000);
+                    setTimeout(() => { window.location.href = 'inventory.html'; }, 1500);
                 } else {
-                    throw new Error(res.error);
+                    throw new Error(res.error || 'Upload failed');
                 }
-
             } catch (error) {
-                statusMsg.style.display = "block";
-                statusMsg.style.backgroundColor = "#f44336";
-                statusMsg.innerHTML = "ERROR: " + error.message;
-                btn.disabled = false;
-                btn.innerText = "List Product";
+                showToast(error.message || 'Failed to list product.', 'error');
+                resetButton(btn);
             }
         });
 
+        // Logout
         document.getElementById('logout-btn').addEventListener('click', (e) => {
             e.preventDefault();
-            logoutUser().then(() => window.location.href = "../auth/login.html");
+            logoutUser().then(() => { window.location.href = '../auth/login.html'; });
         });
+
+        // Mobile sidebar
+        const sidebar   = document.getElementById('sidebar');
+        const overlay   = document.getElementById('sidebar-overlay');
+        const hamburger = document.getElementById('hamburger-btn');
+
+        hamburger.addEventListener('click', () => {
+            const open = sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible', open);
+            hamburger.setAttribute('aria-expanded', open);
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+            hamburger.setAttribute('aria-expanded', 'false');
+        });
+
+        const escHtml = (str) => {
+            const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
+            return String(str || '').replace(/[&<>"']/g, c => map[c]);
+        };
     </script>
 </body>
 </html>

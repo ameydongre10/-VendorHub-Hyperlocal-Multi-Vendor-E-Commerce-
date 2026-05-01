@@ -4,7 +4,10 @@ import {
     addDoc,
     doc,
     getDoc,
-    updateDoc 
+    getDocs,
+    updateDoc,
+    query,
+    where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 export const createOrder = async (buyerId, items, total, vendorIds) => {

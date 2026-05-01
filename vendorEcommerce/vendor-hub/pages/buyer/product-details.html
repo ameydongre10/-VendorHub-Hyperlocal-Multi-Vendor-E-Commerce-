@@ -1,1 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details – VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
+    <style>
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: rgba(7,10,18,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+        }
 
+        .brand-link {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-decoration: none;
+        }
+
+        .page-body {
+            max-width: 1000px;
+            margin: 48px auto;
+            padding: 0 24px;
+        }
+
+        .product-detail-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .product-detail-layout { grid-template-columns: 1fr; }
+        }
+
+        .product-image-wrap {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-fill);
+        }
+
+        .product-image-wrap img {
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .product-category {
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        .product-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .product-price-big {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--accent-primary);
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .product-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .product-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .product-meta-label {
+            color: var(--text-muted);
+            min-width: 80px;
+        }
+
+        .product-meta-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="topbar" role="banner">
+        <a href="shop.html" class="brand-link" aria-label="Back to shop">← Shop</a>
+        <a href="cart.html" class="btn btn-outline btn-sm" aria-label="View cart">🛒 Cart
+            <span class="cart-badge" id="cart-badge" aria-label="Items in cart"
+                  style="position:relative;top:-6px;right:0;background:var(--accent-primary);
+                         color:#000;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:10px;"></span>
+        </a>
+    </header>
+
+    <main class="page-body" role="main" id="product-detail-container">
+        <!-- Product loaded by JS -->
+        <div class="empty-state">
+            <div class="spinner" style="width:40px;height:40px;border-width:3px;"></div>
+            <p>Loading product…</p>
+        </div>
+    </main>
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module">
+        import { fetchProduct } from "../../assets/js/modules/api-service.js";
+        import { addToCart, updateCartBadge } from "../../assets/js/modules/cart.js";
+        import { showToast, handleError } from "../../assets/js/modules/error-handler.js";
+        import { formatCurrency, formatDate, placeholderImg } from "../../assets/js/utils/helpers.js";
+        import { checkAuthState } from "../../assets/js/modules/auth.js";
+
+        const container = document.getElementById('product-detail-container');
+
+        checkAuthState((user) => {
+            if (!user) { window.location.href = '../auth/login.html'; return; }
+            loadProduct();
+        });
+
+        updateCartBadge();
+
+        async function loadProduct() {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+
+            if (!productId) {
+                container.innerHTML = `<div class="empty-state"><p>No product specified.</p>
+                    <a href="shop.html" class="btn btn-outline btn-sm mt-md">Back to Shop</a></div>`;
+                return;
+            }
+
+            const result = await fetchProduct(productId);
+
+            if (!result.success || !result.data) {
+                handleError({ message: result.error || 'Product not found' }, 'productDetails');
+                container.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <p>Product not found.</p>
+                    <a href="shop.html" class="btn btn-outline btn-sm mt-md">Back to Shop</a>
+                </div>`;
+                return;
+            }
+
+            const p = result.data;
+            const imgSrc = p.image || placeholderImg(600, 380);
+            const stockLabel = p.stock > 5
+                ? `<span class="badge badge-success">${p.stock} in stock</span>`
+                : p.stock > 0
+                    ? `<span class="badge badge-warning">Only ${p.stock} left</span>`
+                    : `<span class="badge badge-danger">Out of Stock</span>`;
+
+            document.title = `${p.name} – VendorHub`;
+
+            container.innerHTML = `
+                <div class="product-detail-layout animate-in">
+                    <div class="product-image-wrap">
+                        <img src="${escHtml(imgSrc)}" alt="${escHtml(p.name)}"
+                             onerror="this.src='${placeholderImg(600,380)}'">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${escHtml(p.category || 'General')}</div>
+                        <h1 class="product-title">${escHtml(p.name)}</h1>
+                        <div class="product-price-big">${formatCurrency(p.price)}</div>
+                        <p class="product-description">${escHtml(p.description || 'No description available.')}</p>
+                        <div class="product-meta">
+                            <div class="product-meta-row">
+                                <span class="product-meta-label">Vendor</span>
+                                <span class="product-meta-value">${escHtml(p.vendorName || 'Local Vendor')}</span>
+                            </div>
+                            <div class="product-meta-row">
+                                <span class="product-meta-label">Stock</span>
+                                <span>${stockLabel}</span>
+                            </div>
+                            <div class="product-meta-row">
+                                <span class="product-meta-label">Listed</span>
+                                <span class="product-meta-value">${formatDate(p.createdAt)}</span>
+                            </div>
+                        </div>
+                        <div class="action-row">
+                            <button
+                                id="add-cart-btn"
+                                class="btn btn-primary"
+                                style="flex:1"
+                                ${p.stock < 1 ? 'disabled' : ''}
+                                aria-label="Add to cart"
+                                onclick="doAddToCart('${escHtml(productId)}')">
+                                ${p.stock < 1 ? 'Out of Stock' : '🛒 Add to Cart'}
+                            </button>
+                            <a href="shop.html" class="btn btn-outline" aria-label="Continue shopping">← Shop</a>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        window.doAddToCart = (id) => {
+            const result = addToCart(id);
+            if (result.added) {
+                showToast('Added to cart!', 'success');
+                updateCartBadge();
+            } else {
+                showToast('Already in your cart.', 'info');
+            }
+        };
+
+        const escHtml = (str) => {
+            const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
+            return String(str || '').replace(/[&<>"']/g, c => map[c]);
+        };
+    </script>
+</body>
+</html>

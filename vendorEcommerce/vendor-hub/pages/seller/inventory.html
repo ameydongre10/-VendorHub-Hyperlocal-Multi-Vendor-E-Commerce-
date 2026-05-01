@@ -3,157 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory | VendorHub Terminal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/dashboard.css">
-    <link rel="stylesheet" href="../../assets/css/components.css">
-    <style>
-        /* Table to Glass-List Transformation */
-        .inventory-container {
-            background: var(--glass-fill);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .inventory-header {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            padding: 1.5rem;
-            background: rgba(0, 210, 255, 0.1);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            color: var(--accent-primary);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .inventory-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            padding: 1.2rem 1.5rem;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.3s;
-        }
-
-        .inventory-row:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .stock-alert {
-            color: #ff4444;
-            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
-            font-weight: bold;
-        }
-
-        .btn-action-delete {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid #ff4444;
-            color: #ff4444;
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-family: 'Rajdhani', sans-serif;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-action-delete:hover {
-            background: #ff4444;
-            color: white;
-            box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
-        }
-    </style>
+    <title>Inventory – VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
 </head>
 <body>
+
+    <div class="mobile-nav">
+        <button class="hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <span style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent-primary);letter-spacing:2px;">VENDORHUB</span>
+        <span></span>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <div class="dashboard-wrapper">
-        <aside>
-            <h3>VendorHub</h3>
-            <ul>
-                <li><a href="dashboard.html">Overview</a></li>
-                <li><a href="inventory.html" class="active">My Products</a></li>
-                <li><a href="add-product.html">Add New</a></li>
-                <li><a href="#" id="logout-btn">Logout</a></li>
+
+        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Seller navigation">
+            <div class="sidebar-brand">VendorHub</div>
+            <ul class="sidebar-nav" role="list">
+                <li><a href="dashboard.html">📊 Overview</a></li>
+                <li><a href="inventory.html" class="active" aria-current="page">📦 My Products</a></li>
+                <li><a href="add-product.html">➕ Add Product</a></li>
+                <li><a href="#" id="logout-btn">🚪 Logout</a></li>
             </ul>
         </aside>
 
-        <main>
-            <header style="margin-bottom: 2rem;">
-                <h2>Inventory Management</h2>
-                <p style="color: rgba(255,255,255,0.5);">Manage your listed assets and stock levels</p>
-            </header>
-            
-            <div class="inventory-container stat-card">
-                <div class="inventory-header">
-                    <span>Product Asset</span>
-                    <span>Unit Price</span>
-                    <span>Stock Level</span>
-                    <span>Operations</span>
+        <main class="main-content" role="main">
+
+            <div class="flex-between mb-lg" style="flex-wrap:wrap;gap:12px;">
+                <div>
+                    <h2 style="margin-bottom:4px;">My Inventory</h2>
+                    <p style="font-size:0.85rem;">Manage your listed products and stock levels.</p>
                 </div>
-                <div id="inventory-table-body">
-                    <div style="padding: 40px; text-align: center; color: var(--accent-primary);">Synchronizing with Database...</div>
+                <a href="add-product.html" class="btn btn-primary btn-sm" aria-label="Add new product">
+                    ➕ Add Product
+                </a>
+            </div>
+
+            <div class="inventory-container" role="table" aria-label="Product inventory">
+                <div class="inventory-header" role="row" aria-hidden="true">
+                    <span role="columnheader">Product</span>
+                    <span role="columnheader">Price</span>
+                    <span role="columnheader">Stock</span>
+                    <span role="columnheader">Actions</span>
+                </div>
+                <div id="inventory-table-body" role="rowgroup">
+                    <div class="empty-state" style="padding:48px 24px;">
+                        <div class="spinner" style="width:36px;height:36px;border-width:3px;"></div>
+                        <p>Loading inventory…</p>
+                    </div>
                 </div>
             </div>
+
         </main>
     </div>
 
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <script type="module">
-        import { getVendorProducts, deleteProduct } from "../../assets/js/modules/products.js";
+        import { fetchVendorProducts, removeProduct } from "../../assets/js/modules/api-service.js";
         import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
-        import { initParallax } from "../../assets/js/utils/parallax.js";
-
-        async function refreshInventory(uid) {
-            const products = await getVendorProducts(uid);
-            const container = document.getElementById('inventory-table-body');
-            
-            if (products.length === 0) {
-                container.innerHTML = `<div style="padding:40px; text-align:center;">No assets found in terminal.</div>`;
-                return;
-            }
-
-            container.innerHTML = products.map(p => `
-                <div class="inventory-row">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="${p.image || 'https://via.placeholder.com/40'}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">
-                        <strong>${p.name}</strong>
-                    </div>
-                    <span style="color: var(--accent-primary);">$${p.price}</span>
-                    <span class="${p.stock < 5 ? 'stock-alert' : ''}">${p.stock} Units</span>
-                    <div>
-                        <button class="btn-action-delete" onclick="handleDelete('${p.id}')">Decommission</button>
-                    </div>
-                </div>
-            `).join('');
-            
-            // Re-apply 3D tilt to new elements
-            initParallax();
-        }
-
-        window.handleDelete = async (id) => {
-            if(confirm("Confirm asset decommissioning? This cannot be undone.")) {
-                const res = await deleteProduct(id);
-                if(res.success) {
-                    alert("Asset Removed.");
-                    location.reload();
-                } else {
-                    alert("Operation Failed: " + res.error);
-                }
-            }
-        };
+        import { showToast, handleError } from "../../assets/js/modules/error-handler.js";
+        import { renderInventoryRow } from "../../assets/js/utils/ui-render.js";
 
         checkAuthState((user) => {
             if (user && user.role === 'seller') {
-                refreshInventory(user.uid);
+                loadInventory(user.uid);
             } else {
-                window.location.href = "../auth/login.html";
+                window.location.href = '../auth/login.html';
             }
         });
 
+        async function loadInventory(uid) {
+            const res = await fetchVendorProducts(uid);
+            const container = document.getElementById('inventory-table-body');
+
+            if (!res.success) {
+                handleError({ message: res.error }, 'inventory');
+                container.innerHTML = `<div class="empty-state" style="padding:40px;">
+                    <div class="empty-icon">⚠️</div>
+                    <p>Failed to load inventory. Please refresh.</p>
+                </div>`;
+                return;
+            }
+
+            if (res.data.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="padding:40px;">
+                    <div class="empty-icon">📦</div>
+                    <p>No products listed yet.</p>
+                    <a href="add-product.html" class="btn btn-outline btn-sm mt-md">Add Your First Product</a>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = res.data.map(p => renderInventoryRow(p)).join('');
+        }
+
+        window.handleDelete = async (id) => {
+            if (!confirm('Remove this product? This cannot be undone.')) return;
+
+            const res = await removeProduct(id);
+            if (res.success) {
+                showToast('Product removed.', 'success');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showToast(res.error || 'Failed to remove product.', 'error');
+            }
+        };
+
         document.getElementById('logout-btn').addEventListener('click', (e) => {
             e.preventDefault();
-            logoutUser().then(() => window.location.href = "../auth/login.html");
+            logoutUser().then(() => { window.location.href = '../auth/login.html'; });
+        });
+
+        // Mobile sidebar
+        const sidebar  = document.getElementById('sidebar');
+        const overlay  = document.getElementById('sidebar-overlay');
+        const hamburger = document.getElementById('hamburger-btn');
+
+        hamburger.addEventListener('click', () => {
+            const open = sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible', open);
+            hamburger.setAttribute('aria-expanded', open);
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+            hamburger.setAttribute('aria-expanded', 'false');
         });
     </script>
 </body>
