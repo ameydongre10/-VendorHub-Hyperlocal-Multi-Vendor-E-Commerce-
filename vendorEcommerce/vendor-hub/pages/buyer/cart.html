@@ -3,169 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cart - VendorHub</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <title>Your Cart – VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
     <style>
-        .cart-item {
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: rgba(7,10,18,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .brand-link {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-decoration: none;
+        }
+
+        .page-body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        .order-summary-card {
+            background: var(--glass-fill);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            position: sticky;
+            top: 80px;
+        }
+
+        .summary-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
         }
-        .remove-btn {
-            background: #ff4444;
-            padding: 5px 10px;
-            font-size: 0.8rem;
+
+        .summary-row:last-child { border-bottom: none; }
+
+        .summary-row.total {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            padding-top: 16px;
         }
-        #cart-empty-msg { text-align: center; padding: 2rem; color: #666; }
+
+        .cart-item-info { flex: 1; min-width: 0; }
+        .cart-item-name { font-weight: 700; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cart-item-price { font-size: 0.9rem; color: var(--accent-primary); font-weight: 600; }
+        .cart-item-vendor { font-size: 0.75rem; color: var(--text-muted); }
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="shop.html">← Back to Shop</a>
-        </nav>
+
+    <header class="topbar" role="banner">
+        <a href="shop.html" class="brand-link" aria-label="Back to shop">← Shop</a>
+        <h1 style="font-family:var(--font-display);font-size:1rem;letter-spacing:3px;color:#fff;">YOUR CART</h1>
+        <span></span>
     </header>
 
-    <main class="dashboard-container">
-        <h2>Your Shopping Cart</h2>
-        
-        <div id="cart-items">
+    <main class="page-body" role="main">
+        <div class="cart-layout">
+
+            <!-- Cart Items -->
+            <div>
+                <div id="cart-items" aria-label="Cart items" aria-live="polite"></div>
+                <div id="cart-empty" class="empty-state hidden">
+                    <div class="empty-icon">🛒</div>
+                    <p>Your cart is empty.</p>
+                    <a href="shop.html" class="btn btn-outline btn-sm mt-md">Browse Products</a>
+                </div>
             </div>
 
-        <div id="cart-empty-msg" style="display: none;">
-            <p>Your cart is empty.</p>
-            <a href="shop.html">Browse Products</a>
-        </div>
+            <!-- Order Summary -->
+            <div id="cart-summary" class="order-summary-card hidden" aria-label="Order summary">
+                <h3 style="margin-bottom:20px;font-family:var(--font-body);text-transform:none;letter-spacing:0;">Order Summary</h3>
 
-        <div id="cart-summary" style="margin-top: 2rem; border-top: 2px solid #ddd; padding-top: 1rem;">
-            <h3>Total: $<span id="cart-total">0</span></h3>
-            <button id="checkout-btn" style="width: 100%; font-size: 1.1rem;">Proceed to Checkout</button>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal" style="color:#fff">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span style="color:var(--success)">Free</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+
+                <button
+                    id="checkout-btn"
+                    class="btn btn-primary btn-full mt-lg"
+                    aria-label="Proceed to checkout">
+                    Proceed to Checkout
+                </button>
+            </div>
+
         </div>
     </main>
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script type="module">
         import { db } from "../../assets/js/config/firebase-config.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { createOrder } from "../../assets/js/modules/orders.js";
+        import { placeOrder } from "../../assets/js/modules/api-service.js";
         import { checkAuthState } from "../../assets/js/modules/auth.js";
+        import {
+            getCartIds,
+            removeFromCartByIndex,
+            clearCart,
+            updateCartBadge,
+        } from "../../assets/js/modules/cart.js";
+        import {
+            showToast,
+            setButtonLoading,
+            resetButton,
+            handleError,
+        } from "../../assets/js/modules/error-handler.js";
+        import { formatCurrency, placeholderImg } from "../../assets/js/utils/helpers.js";
 
         let currentUser = null;
+        let loadedProducts = [];
 
-        // Check Auth
+        // Auth guard
         checkAuthState((user) => {
             if (user) {
                 currentUser = user;
+                loadCart();
             } else {
-                alert("Please login to view your cart.");
-                window.location.href = "../auth/login.html";
+                showToast('Please log in to view your cart.', 'info');
+                setTimeout(() => { window.location.href = '../auth/login.html'; }, 1500);
             }
         });
 
         async function loadCart() {
-            const cartIds = JSON.parse(localStorage.getItem('cart') || '[]');
-            const container = document.getElementById('cart-items');
-            const emptyMsg = document.getElementById('cart-empty-msg');
-            const summary = document.getElementById('cart-summary');
-            
-            container.innerHTML = ""; // Clear existing
-            let total = 0;
+            const ids = getCartIds();
+            const itemsEl   = document.getElementById('cart-items');
+            const emptyEl   = document.getElementById('cart-empty');
+            const summaryEl = document.getElementById('cart-summary');
 
-            if (cartIds.length === 0) {
-                emptyMsg.style.display = "block";
-                summary.style.display = "none";
+            itemsEl.innerHTML = '';
+            loadedProducts = [];
+
+            if (ids.length === 0) {
+                emptyEl.classList.remove('hidden');
+                summaryEl.classList.add('hidden');
                 return;
             }
 
-            emptyMsg.style.display = "none";
-            summary.style.display = "block";
+            emptyEl.classList.add('hidden');
+            summaryEl.classList.remove('hidden');
 
-            // Loop through IDs and fetch details
-            for (let i = 0; i < cartIds.length; i++) {
-                const id = cartIds[i];
-                const pDoc = await getDoc(doc(db, "products", id));
-                
-                if (pDoc.exists()) {
-                    const p = pDoc.data();
-                    total += p.price;
+            // Show skeleton
+            itemsEl.innerHTML = Array.from({ length: ids.length }).map(() => `
+                <div class="cart-item" style="animation:pulseGlow 1.5s infinite;">
+                    <div style="width:70px;height:70px;background:var(--glass-fill);border-radius:var(--radius-sm);flex-shrink:0;"></div>
+                    <div style="flex:1;padding-left:12px;">
+                        <div style="height:14px;background:rgba(255,255,255,0.06);border-radius:4px;width:70%;margin-bottom:8px;"></div>
+                        <div style="height:12px;background:rgba(0,210,255,0.08);border-radius:4px;width:40%;"></div>
+                    </div>
+                </div>`).join('');
 
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'cart-item';
-                    itemDiv.innerHTML = `
-                        <div>
-                            <strong>${p.name}</strong><br>
-                            <small>$${p.price}</small>
-                        </div>
-                        <button class="remove-btn" onclick="removeItem(${i})">Remove</button>
-                    `;
-                    container.appendChild(itemDiv);
-                }
-            }
-            document.getElementById('cart-total').innerText = total.toFixed(2);
+            // Fetch product details
+            let total = 0;
+            const productPromises = ids.map(id => getDoc(doc(db, 'products', id)));
+            const snaps = await Promise.all(productPromises);
+
+            itemsEl.innerHTML = '';
+            snaps.forEach((snap, idx) => {
+                if (!snap.exists()) return;
+                const p = { id: snap.id, ...snap.data() };
+                loadedProducts.push(p);
+                total += p.price || 0;
+
+                const div = document.createElement('div');
+                div.className = 'cart-item animate-in';
+                div.dataset.index = idx;
+                div.innerHTML = `
+                    <img src="${escHtml(p.image || placeholderImg(70,70))}" alt="${escHtml(p.name)}"
+                         onerror="this.src='${placeholderImg(70,70)}'">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${escHtml(p.name)}</div>
+                        <div class="cart-item-vendor">by ${escHtml(p.vendorName || 'Local Vendor')}</div>
+                        <div class="cart-item-price">${formatCurrency(p.price)}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="removeItem(${idx})" aria-label="Remove ${escHtml(p.name)} from cart">
+                        ✕
+                    </button>`;
+                itemsEl.appendChild(div);
+            });
+
+            document.getElementById('cart-subtotal').textContent = formatCurrency(total);
+            document.getElementById('cart-total').textContent     = formatCurrency(total);
         }
 
-        // Global function to remove item by index
         window.removeItem = (index) => {
-            let cartIds = JSON.parse(localStorage.getItem('cart') || '[]');
-            cartIds.splice(index, 1); // Remove 1 item at the specific index
-            localStorage.setItem('cart', JSON.stringify(cartIds));
-            loadCart(); // Refresh UI
+            removeFromCartByIndex(index);
+            updateCartBadge();
+            loadCart();
+            showToast('Item removed from cart.', 'info');
         };
 
-        // Checkout Logic
         document.getElementById('checkout-btn').addEventListener('click', async () => {
-            if (!currentUser) return alert("Login to checkout");
+            if (!currentUser) {
+                showToast('Please log in to checkout.', 'info');
+                return;
+            }
 
-            const cartIds = JSON.parse(localStorage.getItem('cart') || '[]');
-            const total = parseFloat(document.getElementById('cart-total').innerText);
-
-            if (cartIds.length === 0) return alert("Cart is empty");
+            const ids = getCartIds();
+            if (ids.length === 0) { showToast('Your cart is empty.', 'warning'); return; }
 
             const btn = document.getElementById('checkout-btn');
-            btn.innerText = "Processing...";
-            btn.disabled = true;
+            setButtonLoading(btn, 'Processing…');
 
             try {
-                // --- START OF FIX: Collect Vendor IDs ---
-                const vendorIdsSet = new Set();
-                
-                // We loop through each product ID in the cart to find its owner (vendor)
-                for (const productId of cartIds) {
-                    const productSnap = await getDoc(doc(db, "products", productId));
-                    if (productSnap.exists()) {
-                        const productData = productSnap.data();
-                        if (productData.vendorId) {
-                            vendorIdsSet.add(productData.vendorId);
-                        }
-                    }
-                }
-                
-                const finalVendorIds = Array.from(vendorIdsSet);
-                // --- END OF FIX ---
+                const total      = loadedProducts.reduce((s, p) => s + (p.price || 0), 0);
+                const vendorIds  = [...new Set(loadedProducts.map(p => p.vendorId).filter(Boolean))];
 
-                // Pass the collected vendor IDs to the order module
-                const res = await createOrder(currentUser.uid, cartIds, total, finalVendorIds);
-                
+                const res = await placeOrder(currentUser.uid, ids, total, vendorIds);
+
                 if (res.success) {
-                    alert("Order Placed Successfully!");
-                    localStorage.removeItem('cart');
-                    window.location.href = "track-order.html?orderId=" + res.orderId;
+                    clearCart();
+                    updateCartBadge();
+                    showToast('Order placed successfully! 🎉', 'success', 2000);
+                    setTimeout(() => {
+                        window.location.href = 'track-order.html?orderId=' + res.data.orderId;
+                    }, 1200);
                 } else {
-                    throw new Error(res.error);
+                    throw new Error(res.error || 'Checkout failed');
                 }
             } catch (error) {
-                alert("Checkout failed: " + error.message);
-                btn.innerText = "Proceed to Checkout";
-                btn.disabled = false;
+                handleError(error, 'checkout');
+                resetButton(btn);
             }
         });
 
-        // Initial Load
-        loadCart();
+        const escHtml = (str) => {
+            const map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
+            return String(str || '').replace(/[&<>"']/g, c => map[c]);
+        };
     </script>
 </body>
 </html>

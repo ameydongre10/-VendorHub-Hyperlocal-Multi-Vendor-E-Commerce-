@@ -3,26 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Join VendorHub | Next-Gen Marketplace</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/auth.css">
+    <title>VendorHub | Create Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/design-system.css">
+    <link rel="stylesheet" href="../../assets/css/responsive.css">
     <style>
-        /* Techfest-Style Overrides */
-        .auth-container {
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.1);
-            background: rgba(10, 10, 10, 0.8) !important;
-        }
-
-        h2 {
-            font-family: 'Orbitron', sans-serif; /* Futuristic Font */
-            letter-spacing: 4px;
-            background: linear-gradient(to right, #00f2fe, #4facfe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-        }
-
         .role-selector {
             display: flex;
             gap: 10px;
@@ -31,101 +16,165 @@
 
         .role-btn {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #4facfe;
-            background: transparent;
-            color: #4facfe;
+            padding: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-fill);
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: 0.3s;
-            border-radius: 4px;
-            font-weight: bold;
+            transition: all var(--transition-fast);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .role-btn.active {
-            background: #4facfe;
-            color: white;
-            box-shadow: 0 0 15px #4facfe;
-        }
-
-        input {
-            background: rgba(255,255,255,0.05) !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            color: white !important;
-            padding: 12px !important;
-        }
-
-        input:focus {
-            border-color: #00f2fe !important;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-            outline: none;
+        .role-btn.active,
+        .role-btn:hover {
+            background: rgba(0, 210, 255, 0.12);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.15);
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <h2>Initiate Account</h2>
-        <div class="role-selector">
-            <button type="button" class="role-btn active" onclick="setRole('buyer', this)">Buyer</button>
-            <button type="button" class="role-btn" onclick="setRole('seller', this)">Seller</button>
-        </div>
 
-        <form id="register-form">
-            <div class="form-group">
-                <input type="text" id="reg-name" placeholder="Full Name" required>
-            </div>
-            <div class="form-group">
-                <input type="email" id="reg-email" placeholder="Email Address" required>
-            </div>
-            <div class="form-group">
-                <input type="password" id="reg-password" placeholder="Create Password" required>
-            </div>
-            <button type="submit" class="auth-btn">Authorize Registration</button>
-        </form>
-        <p class="auth-footer">Already a member? <a href="login.html" style="color:#00f2fe">Access Portal</a></p>
-    </div>
-
-    <div class="video-bg">
+    <div class="video-bg" aria-hidden="true">
         <video autoplay muted loop playsinline>
             <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-blue-and-purple-lines-20707-large.mp4" type="video/mp4">
         </video>
     </div>
 
+    <main class="auth-page" role="main">
+        <div class="auth-card animate-in" role="form" aria-labelledby="register-heading">
+
+            <div class="auth-logo">
+                <h1>VendorHub</h1>
+                <p>Create your free account</p>
+            </div>
+
+            <!-- Role Selector -->
+            <div class="role-selector" role="group" aria-label="Select account type">
+                <button type="button" class="role-btn active" id="role-buyer"
+                        onclick="setRole('buyer')" aria-pressed="true">
+                    🛒 Buyer
+                </button>
+                <button type="button" class="role-btn" id="role-seller"
+                        onclick="setRole('seller')" aria-pressed="false">
+                    🏪 Seller
+                </button>
+            </div>
+
+            <form id="register-form" novalidate aria-label="Registration form">
+                <div class="form-group">
+                    <label for="reg-name">Full Name</label>
+                    <input
+                        type="text"
+                        id="reg-name"
+                        class="form-control"
+                        placeholder="Your full name"
+                        autocomplete="name"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-email">Email Address</label>
+                    <input
+                        type="email"
+                        id="reg-email"
+                        class="form-control"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input
+                        type="password"
+                        id="reg-password"
+                        class="form-control"
+                        placeholder="At least 6 characters"
+                        autocomplete="new-password"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <button type="submit" id="register-btn" class="btn btn-primary btn-full mt-md" aria-label="Create account">
+                    Create Account
+                </button>
+            </form>
+
+            <p class="text-center mt-md" style="font-size:0.9rem;color:var(--text-secondary);">
+                Already have an account?
+                <a href="login.html" style="font-weight:700;">Sign in</a>
+            </p>
+
+        </div>
+    </main>
+
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <script type="module">
         import { registerUser } from "../../assets/js/modules/auth.js";
-        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import {
+            showToast,
+            setButtonLoading,
+            resetButton,
+            validateForm,
+        } from "../../assets/js/modules/error-handler.js";
 
         let selectedRole = 'buyer';
 
-        window.setRole = (role, btn) => {
+        window.setRole = (role) => {
             selectedRole = role;
-            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            ['buyer', 'seller'].forEach(r => {
+                const btn = document.getElementById(`role-${r}`);
+                btn.classList.toggle('active', r === role);
+                btn.setAttribute('aria-pressed', r === role ? 'true' : 'false');
+            });
         };
-
-        initParallax();
 
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.innerText = "Processing...";
 
-            const userData = {
-                name: document.getElementById('reg-name').value,
-                role: selectedRole
-            };
+            const isValid = validateForm([
+                { id: 'reg-name',     label: 'Full Name', required: true, minLength: 2 },
+                { id: 'reg-email',    label: 'Email',     required: true, type: 'email' },
+                { id: 'reg-password', label: 'Password',  required: true, minLength: 6 },
+            ]);
+
+            if (!isValid) return;
+
+            const btn = document.getElementById('register-btn');
+            setButtonLoading(btn, 'Creating account…');
 
             const res = await registerUser(
-                document.getElementById('reg-email').value,
+                document.getElementById('reg-email').value.trim(),
                 document.getElementById('reg-password').value,
-                userData
+                {
+                    name: document.getElementById('reg-name').value.trim(),
+                    role: selectedRole,
+                }
             );
 
             if (res.success) {
-                alert("Account Created! Re-routing to Dashboard...");
-                window.location.href = selectedRole === 'seller' ? "../seller/dashboard.html" : "../buyer/shop.html";
+                showToast('Account created successfully!', 'success', 2000);
+                setTimeout(() => {
+                    window.location.href = selectedRole === 'seller'
+                        ? '../seller/dashboard.html'
+                        : '../buyer/shop.html';
+                }, 1000);
             } else {
-                alert("Error: " + res.error);
-                btn.innerText = "Authorize Registration";
+                showToast(res.error || 'Registration failed. Please try again.', 'error');
+                resetButton(btn);
             }
         });
     </script>
