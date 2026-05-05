@@ -1,166 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - VendorHub</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/dashboard.css">
-    <style>
-        .order-admin-card {
-            background: #fff;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            border-left: 5px solid #3498db;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .order-info span { display: block; font-size: 0.85rem; color: #666; }
-        .admin-controls select { padding: 5px; border-radius: 4px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – VendorHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:#0a0b10;color:#fff;min-height:100vh;display:flex}
+    a{color:inherit;text-decoration:none}
+    .sidebar{width:240px;flex-shrink:0;min-height:100vh;background:rgba(0,0,0,0.55);border-right:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;backdrop-filter:blur(20px)}
+    .sidebar-brand{padding:1.25rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .sidebar-logo{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .sidebar-badge{display:inline-block;padding:.1rem .5rem;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.25);border-radius:20px;font-size:.65rem;font-weight:700;margin-left:.4rem}
+    .sidebar-nav-items{flex:1;padding:1rem .75rem;display:flex;flex-direction:column;gap:.25rem}
+    .sidebar-link{display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;border-radius:10px;color:#a0aec0;font-size:.875rem;font-weight:500;transition:all .2s}
+    .sidebar-link:hover{background:rgba(255,255,255,0.05);color:#fff}
+    .sidebar-link.active{background:rgba(245,158,11,0.1);color:#f59e0b;border-left:2px solid #f59e0b}
+    .sidebar-logout{margin:.75rem;padding:.65rem .9rem;border-radius:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);color:#ef4444;font-size:.875rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:.75rem}
+    .main{flex:1;overflow-x:hidden;min-width:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 2rem;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(10,11,16,0.7)}
+    .topbar-title{font-size:1.05rem;font-weight:600}
+    .admin-badge{padding:.25rem .75rem;background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.2);border-radius:20px;font-size:.75rem;font-weight:600}
+    .content{padding:2rem}
+    .page-title{font-size:1.6rem;font-weight:700;margin-bottom:.3rem}
+    .page-sub{color:#a0aec0;font-size:.875rem;margin-bottom:2rem}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.25rem;margin-bottom:2rem}
+    .stat-card{background:rgba(17,19,24,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:1.25rem;text-align:center;backdrop-filter:blur(10px)}
+    .stat-icon{font-size:1.75rem;margin-bottom:.5rem}
+    .stat-lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:1px;color:#4a5568;font-weight:600;margin-bottom:.4rem}
+    .stat-val{font-size:1.6rem;font-weight:700}
+    .card{background:rgba(17,19,24,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;backdrop-filter:blur(10px)}
+    .card-title{font-size:1.05rem;font-weight:700;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid rgba(255,255,255,0.07)}
+    table{width:100%;border-collapse:collapse;font-size:.875rem}
+    th{padding:.6rem 1rem;text-align:left;font-size:.7rem;font-weight:600;color:#4a5568;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.06)}
+    td{padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);color:#a0aec0}
+    tr:last-child td{border-bottom:none}
+    .badge{display:inline-block;padding:.2rem .65rem;border-radius:20px;font-size:.72rem;font-weight:600}
+    .btn-approve{padding:.35rem .8rem;border-radius:6px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-approve:hover{background:rgba(16,185,129,0.2)}
+    .btn-reject{padding:.35rem .8rem;border-radius:6px;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.25);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-reject:hover{background:rgba(239,68,68,0.2)}
+    .activity-item{display:flex;align-items:center;gap:.875rem;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+    .activity-item:last-child{border-bottom:none}
+    .activity-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0}
+    .activity-text{flex:1;font-size:.875rem}
+    .activity-time{font-size:.72rem;color:#4a5568}
+    @media(max-width:768px){.sidebar{display:none}.content{padding:1rem}}
+</style>
 </head>
 <body>
-    <div class="dashboard-wrapper">
-        <aside>
-            <h3>Admin Panel</h3>
-            <ul>
-                <li><a href="dashboard.html" class="active">Overview</a></li>
-                <li><a href="vendor-requests.html">Vendor Requests</a></li>
-                <li><a href="analytics.html">Detailed Analytics</a></li>
-                <li><a href="#" id="logout-btn">Logout</a></li>
-            </ul>
-        </aside>
-
-        <main>
-            <h2>Platform Overview</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h4>Gross Sales</h4>
-                    <p id="total-sales">$0</p>
-                </div>
-                <div class="stat-card">
-                    <h4>Total Orders</h4>
-                    <p id="total-orders">0</p>
-                </div>
-            </div>
-
-            <section style="margin-top: 2rem;">
-                <h3>Global Order Management</h3>
-                <div id="admin-orders-list">
-                    <p>Loading orders...</p>
-                </div>
-            </section>
-
-            <section style="margin-top: 2rem;">
-                <h3>Pending Vendor Approvals</h3>
-                <div id="vendor-list"></div>
-            </section>
-        </main>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-logo">VendorHub</span>
+      <span class="sidebar-badge">ADMIN</span>
     </div>
+    <nav class="sidebar-nav-items">
+      <a href="dashboard.html" class="sidebar-link active"><span>📊</span> Overview</a>
+      <a href="#" class="sidebar-link"><span>👥</span> Users</a>
+      <a href="#" class="sidebar-link"><span>🏪</span> Sellers</a>
+      <a href="analytics.html" class="sidebar-link"><span>📈</span> Analytics</a>
+      <a href="../buyer/shop.html" class="sidebar-link"><span>🛍</span> Marketplace</a>
+    </nav>
+    <button class="sidebar-logout" onclick="doLogout()">🚪 Logout</button>
+  </aside>
 
-    <script type="module">
-        import { getPlatformAnalytics, getPendingVendors, updateVendorStatus } from "../../assets/js/modules/admin.js";
-        // Import order functions
-        import { updateOrderStatus } from "../../assets/js/modules/orders.js";
-        import { db } from "../../assets/js/config/firebase-config.js";
-        import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Admin Overview</span>
+      <span class="admin-badge">⚙️ Administrator</span>
+    </div>
+    <div class="content">
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-sub">Platform overview and management tools.</p>
 
-        async function initAdmin() {
-            // 1. Load Analytics
-            const stats = await getPlatformAnalytics();
-            document.getElementById('total-sales').innerText = `$${stats.totalSales.toFixed(2)}`;
-            document.getElementById('total-orders').innerText = stats.totalOrders;
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-lbl">Total Users</div><div class="stat-val" style="color:#00d2ff" id="statUsers">—</div></div>
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-lbl">Pending Sellers</div><div class="stat-val" style="color:#f59e0b" id="statPending">—</div></div>
+        <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-lbl">Total Products</div><div class="stat-val" style="color:#10b981" id="statProducts">—</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-lbl">Total Orders</div><div class="stat-val" style="color:#3a7bd5" id="statOrders">—</div></div>
+      </div>
 
-            // 2. Load Pending Vendors
-            const vendors = await getPendingVendors();
-            const list = document.getElementById('vendor-list');
-            list.innerHTML = vendors.length ? vendors.map(v => `
-                <div class="vendor-card">
-                    <p><strong>${v.name}</strong> (${v.email})</p>
-                    <button class="approve-btn" onclick="approveVendor('${v.id}')">Approve</button>
-                    <button class="reject-btn" onclick="rejectVendor('${v.id}')">Reject</button>
-                </div>
-            `).join('') : "<p>No pending requests.</p>";
+      <div class="card">
+        <div class="card-title">⏳ Pending Seller Requests</div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Business</th><th>City</th><th>Applied</th><th>Actions</th></tr></thead>
+            <tbody id="pendingBody"><tr><td colspan="6" style="text-align:center;color:#4a5568;padding:2rem">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
 
-            // 3. Load All Orders for Admin
-            loadAllOrders();
-        }
+      <div class="card">
+        <div class="card-title">🕒 Recent Activity</div>
+        <div id="activityFeed">
+          <div class="activity-item"><div class="activity-icon" style="background:rgba(0,210,255,0.1)">🛍</div><div class="activity-text">New buyer registered <span style="color:#a0aec0">— just now</span></div></div>
+          <div class="activity-item"><div class="activity-icon" style="background:rgba(16,185,129,0.1)">✅</div><div class="activity-text">Order #AB1234 delivered <span style="color:#a0aec0">— 5 min ago</span></div></div>
+          <div class="activity-item"><div class="activity-icon" style="background:rgba(245,158,11,0.1)">🏪</div><div class="activity-text">New seller application received <span style="color:#a0aec0">— 12 min ago</span></div></div>
+          <div class="activity-item"><div class="activity-icon" style="background:rgba(58,123,213,0.1)">📦</div><div class="activity-text">5 new products listed <span style="color:#a0aec0">— 1 hour ago</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        async function loadAllOrders() {
-            const container = document.getElementById('admin-orders-list');
-            try {
-                // Fetch every order on the platform
-                const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-                const snapshot = await getDocs(q);
-                
-                if (snapshot.empty) {
-                    container.innerHTML = "<p>No orders found on the platform.</p>";
-                    return;
-                }
+  <script type="module">
+    import { requireAuth, logout } from '../../assets/js/modules/auth-manager.js';
+    import { UsersAPI, ProductsAPI, OrdersAPI } from '../../assets/js/modules/api-service.js';
+    import { showSuccess, showToast } from '../../assets/js/modules/error-handler.js';
 
-                container.innerHTML = snapshot.docs.map(doc => {
-                    const order = doc.data();
-                    return `
-                        <div class="order-admin-card">
-                            <div class="order-info">
-                                <strong>Order #${doc.id.slice(-6)}</strong>
-                                <span>Buyer ID: ${order.buyerId.slice(-6)}</span>
-                                <span>Amount: $${order.totalAmount.toFixed(2)}</span>
-                            </div>
-                            <div class="admin-controls">
-                                <select onchange="adminUpdateStatus('${doc.id}', this.value)">
-                                    <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
-                                    <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                                    <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                                </select>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (err) {
-                container.innerHTML = "<p>Error loading orders.</p>";
-                console.error(err);
-            }
-        }
+    window.doLogout = () => logout();
+    const session = requireAuth(['admin']);
+    if (!session) throw new Error('auth');
 
-        // Global functions for buttons/dropdowns
-        window.approveVendor = async (id) => {
-            await updateVendorStatus(id, 'approved');
-            initAdmin(); // Refresh UI without full reload
-        };
+    function fmtD(d){ return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(new Date(d)); }
 
-        window.rejectVendor = async (id) => {
-            await updateVendorStatus(id, 'rejected');
-            initAdmin();
-        };
+    window.approveSeller = async function(id, name) {
+      try { await UsersAPI.updateStatus(id,'approved'); showSuccess(name+' approved!'); loadData(); }
+      catch(e){ showToast('Failed to approve.','error'); }
+    };
+    window.rejectSeller = async function(id, name) {
+      if (!confirm('Reject '+name+'?')) return;
+      try { await UsersAPI.updateStatus(id,'rejected'); showToast(name+' rejected.','warning'); loadData(); }
+      catch(e){ showToast('Failed to reject.','error'); }
+    };
 
-        window.adminUpdateStatus = async (orderId, newStatus) => {
-            const res = await updateOrderStatus(orderId, newStatus);
-            if (res.success) {
-                alert("Order status updated successfully!");
-            } else {
-                alert("Failed to update order: " + res.error);
-            }
-        };
-
-        initAdmin();
-    </script>
-    <button id="theme-toggle" style="margin: 10px; padding: 5px 10px; cursor: pointer; border-radius: 20px; border: 1px solid #ccc;">
-    🌓 Switch Theme
-</button>
-
-<script type="module">
-    import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
-    
-    // Run on load
-    initTheme();
-
-    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-</script>
+    async function loadData() {
+      try {
+        const [users, pending, products, orders] = await Promise.all([
+          UsersAPI.getAll(),
+          UsersAPI.getPendingSellers(),
+          ProductsAPI.getAll(),
+          OrdersAPI.getByBuyer ? Promise.resolve([]) : Promise.resolve([])
+        ]);
+        document.getElementById('statUsers').textContent    = users.length;
+        document.getElementById('statPending').textContent  = pending.length;
+        document.getElementById('statProducts').textContent = products.length;
+        document.getElementById('statOrders').textContent   = '—';
+        const tbody = document.getElementById('pendingBody');
+        if (!pending.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#4a5568;padding:2rem">✓ No pending requests.</td></tr>'; return; }
+        tbody.innerHTML = pending.map(u=>`<tr>
+          <td style="color:#fff;font-weight:500">${u.name||'—'}</td>
+          <td>${u.email||'—'}</td>
+          <td>${u.businessName||'—'}</td>
+          <td>${u.city||'—'}</td>
+          <td>${u.createdAt?fmtD(u.createdAt):'—'}</td>
+          <td><div style="display:flex;gap:.4rem">
+            <button class="btn-approve" onclick="approveSeller('${u.id}','${u.name||u.email}')">✓ Approve</button>
+            <button class="btn-reject"  onclick="rejectSeller('${u.id}','${u.name||u.email}')">✕ Reject</button>
+          </div></td>
+        </tr>`).join('');
+      } catch(e) { console.error(e); }
+    }
+    loadData();
+  </script>
 </body>
 </html>

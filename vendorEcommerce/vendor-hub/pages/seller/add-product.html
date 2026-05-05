@@ -1,120 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product - VendorHub</title>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Product – VendorHub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:#0a0b10;color:#fff;min-height:100vh;display:flex}
+    a{color:inherit;text-decoration:none}
+    .sidebar{width:240px;flex-shrink:0;min-height:100vh;background:rgba(0,0,0,0.5);border-right:1px solid rgba(255,255,255,0.05);display:flex;flex-direction:column;padding:0;position:sticky;top:0;height:100vh;backdrop-filter:blur(20px)}
+    .sidebar-brand{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .sidebar-logo{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:800;background:linear-gradient(135deg,#00d2ff,#3a7bd5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .sidebar-nav-items{flex:1;padding:1rem .75rem;display:flex;flex-direction:column;gap:.25rem}
+    .sidebar-link{display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;border-radius:10px;color:#a0aec0;font-size:.875rem;font-weight:500;transition:all .2s}
+    .sidebar-link:hover{background:rgba(255,255,255,0.05);color:#fff}
+    .sidebar-link.active{background:rgba(0,210,255,0.1);color:#00d2ff;border-left:2px solid #00d2ff}
+    .sidebar-logout{margin:.75rem;padding:.65rem .9rem;border-radius:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);color:#ef4444;font-size:.875rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.75rem}
+    .sidebar-logout:hover{background:rgba(239,68,68,0.15)}
+    .main{flex:1;overflow-x:hidden;min-width:0}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 2rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .topbar-title{font-size:1.05rem;font-weight:600}
+    .content{padding:2rem}
+    .page-title{font-size:1.6rem;font-weight:700;margin-bottom:.3rem}
+    .page-sub{color:#a0aec0;font-size:.875rem;margin-bottom:2rem}
+    .card{background:rgba(17,19,24,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:1.5rem;backdrop-filter:blur(10px)}
+    .form-group{margin-bottom:1.25rem}
+    .form-label{display:block;font-size:.85rem;font-weight:500;color:#a0aec0;margin-bottom:.5rem}
+    .form-input{width:100%;padding:.7rem 1rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:.9rem;outline:none;transition:border-color .2s,box-shadow .2s;font-family:inherit}
+    .form-input:focus{border-color:#00d2ff;box-shadow:0 0 0 3px rgba(0,210,255,.1)}
+    .form-input::placeholder{color:#4a5568}
+    .form-input.error{border-color:#ef4444}
+    textarea.form-input{resize:vertical;min-height:110px}
+    select.form-input{cursor:pointer}
+    select.form-input option{background:#1a1d26}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .field-error{font-size:.78rem;color:#ef4444;margin-top:.3rem;display:none}
+    .field-error.show{display:block}
+    .btn-submit{padding:.8rem 1.75rem;border-radius:10px;font-size:.95rem;font-weight:600;background:linear-gradient(135deg,#00d2ff,#3a7bd5);color:#fff;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s,opacity .2s}
+    .btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 16px rgba(0,210,255,.4)}
+    .btn-submit:disabled{opacity:.6;cursor:not-allowed}
+    .btn-ai{padding:.6rem 1.1rem;border-radius:8px;font-size:.82rem;font-weight:600;background:rgba(123,47,255,0.12);color:#a78bfa;border:1px solid rgba(123,47,255,0.25);cursor:pointer;transition:all .2s}
+    .btn-ai:hover{background:rgba(123,47,255,0.2)}
+    .img-preview{width:100%;aspect-ratio:16/9;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,0.07);display:none;margin-top:.75rem}
+    .img-placeholder{width:100%;aspect-ratio:16/9;border-radius:12px;border:2px dashed rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:#4a5568;font-size:.875rem;cursor:pointer;transition:border-color .2s;margin-top:.75rem}
+    .img-placeholder:hover{border-color:rgba(0,210,255,.3);color:#00d2ff}
+    @media(max-width:768px){.sidebar{display:none}.content{padding:1rem}.form-row{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="inventory.html">Inventory</a>
-            <a href="#" id="logout-btn">Logout</a>
-        </nav>
-        
-        <main>
-            <h2>Add New Product</h2>
-            <form id="add-product-form">
-                <input type="text" id="p-name" placeholder="Product Name" required>
-                <textarea id="p-desc" placeholder="Description" required></textarea>
-                <input type="number" id="p-price" placeholder="Price" required>
-                <input type="number" id="p-stock" placeholder="Initial Stock" required>
-                <input type="text" id="p-category" placeholder="Category" required>
-                
-                <div class="upload-section">
-                    <input type="file" id="p-image" accept="image/*" required>
-                    <div id="image-preview" style="margin-top:10px; border:1px dashed #ccc; padding:10px; min-height:50px;">
-                        No image selected
-                    </div>
-                </div>
-
-                <button type="submit" id="submit-btn" style="margin-top:20px;">List Product</button>
-            </form>
-            <div id="status-msg" style="display:none; margin-top:20px; padding:10px; color:white; border-radius:4px;"></div>
-        </main>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand"><span class="sidebar-logo">VendorHub</span></div>
+      <nav class="sidebar-nav-items">
+        <a href="dashboard.html" class="sidebar-link"><span>📊</span> Dashboard</a>
+        <a href="inventory.html" class="sidebar-link"><span>📦</span> Inventory</a>
+        <a href="add-product.html" class="sidebar-link active"><span>➕</span> Add Product</a>
+        <a href="../buyer/shop.html" class="sidebar-link"><span>🛍</span> View Store</a>
+      </nav>
+      <button class="sidebar-logout" onclick="doLogout()">🚪 Logout</button>
+    </aside>
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title">Add New Product</span>
     </div>
+    <div class="content">
+      <h1 class="page-title">Add Product</h1>
+      <p class="page-sub">List a new product to the marketplace.</p>
+      <div class="card">
+        <form id="productForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Product Name *</label>
+              <input type="text" id="productName" class="form-input" placeholder="e.g. Wireless Headphones" required>
+              <div class="field-error" id="nameErr">Product name is required.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select id="category" class="form-input" required>
+                <option value="">Select category</option>
+                <option>Electronics</option><option>Fashion</option><option>Food</option>
+                <option>Home</option><option>Beauty</option><option>Sports</option>
+                <option>Books</option><option>Toys</option><option>Other</option>
+              </select>
+              <div class="field-error" id="catErr">Please select a category.</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+              <label class="form-label" style="margin:0">Description</label>
+              <button type="button" class="btn-ai" id="aiBtn" onclick="generateDesc()">🤖 AI Generate</button>
+            </div>
+            <textarea id="description" class="form-input" placeholder="Describe your product..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Price (USD) *</label>
+              <input type="number" id="price" class="form-input" placeholder="0.00" min="0" step="0.01" required>
+              <div class="field-error" id="priceErr">Price must be greater than 0.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stock Quantity *</label>
+              <input type="number" id="stock" class="form-input" placeholder="0" min="0" required>
+              <div class="field-error" id="stockErr">Stock quantity is required.</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Product Image URL</label>
+            <input type="url" id="imageUrl" class="form-input" placeholder="https://..." oninput="previewImg(this.value)">
+            <div class="img-placeholder" id="imgPlaceholder" onclick="document.getElementById('imageUrl').focus()">📷 Enter image URL above to preview</div>
+            <img id="imgPreview" class="img-preview" alt="Preview">
+          </div>
+          <div style="display:flex;gap:1rem;align-items:center;margin-top:.5rem">
+            <button type="submit" class="btn-submit" id="submitBtn">➕ Add Product</button>
+            <a href="inventory.html" style="color:#a0aec0;font-size:.875rem;transition:color .2s">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-    <script type="module">
-        import { addProduct } from "../../assets/js/modules/products.js";
-        import { logoutUser, checkAuthState } from "../../assets/js/modules/auth.js";
+  <script type="module">
+    import { requireAuth, logout } from '../../assets/js/modules/auth-manager.js';
+    import { ProductsAPI, GeminiAPI } from '../../assets/js/modules/api-service.js';
+    import { showSuccess, showToast, handleError, setLoadingState } from '../../assets/js/modules/error-handler.js';
 
-        let currentUser = null;
-        const statusMsg = document.getElementById('status-msg');
+    window.doLogout = () => logout();
+    const session = requireAuth(['seller']);
+    if (!session) throw new Error('auth');
 
-        // Check Session
-        checkAuthState((user) => {
-            if (user && user.role === 'seller') {
-                currentUser = user;
-            } else {
-                window.location.href = "../auth/login.html";
-            }
-        });
+    window.previewImg = function(url) {
+      const preview  = document.getElementById('imgPreview');
+      const holder   = document.getElementById('imgPlaceholder');
+      if (url) { preview.src=url; preview.style.display='block'; holder.style.display='none'; }
+      else      { preview.style.display='none'; holder.style.display='flex'; }
+    };
 
-        // Image Preview Logic
-        document.getElementById('p-image').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    document.getElementById('image-preview').innerHTML =
-                        `<img src="${event.target.result}" style="max-width:150px; border-radius:8px;">`;
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+    window.generateDesc = async function() {
+      const name  = document.getElementById('productName').value.trim();
+      const cat   = document.getElementById('category').value;
+      if (!name) { showToast('Enter a product name first.','warning'); return; }
+      const btn = document.getElementById('aiBtn');
+      btn.textContent='⏳ Generating...'; btn.disabled=true;
+      const result = await GeminiAPI.generateProductDescription(name, cat||'General', name);
+      btn.textContent='🤖 AI Generate'; btn.disabled=false;
+      if (result.success && result.text) { document.getElementById('description').value=result.text; showSuccess('Description generated!'); }
+      else showToast(result.error||'AI generation failed.','error');
+    };
 
-        // Form Submit Logic
-        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true;
-            btn.innerText = "UPLOADING TO CLOUD...";
-
-            try {
-                const productData = {
-                    name: document.getElementById('p-name').value,
-                    description: document.getElementById('p-desc').value,
-                    price: parseFloat(document.getElementById('p-price').value),
-                    stock: parseInt(document.getElementById('p-stock').value),
-                    category: document.getElementById('p-category').value,
-                    // Use the OR (||) operator to provide a fallback string
-                    vendorId: currentUser.uid || "unknown_id",
-                    vendorName: currentUser.name || "Local Vendor" 
-                };
-
-                const imageFile = document.getElementById('p-image').files[0];
-                const res = await addProduct(productData, imageFile);
-
-                if(res.success) {
-                    statusMsg.style.display = "block";
-                    statusMsg.style.backgroundColor = "#4CAF50";
-                    statusMsg.innerHTML = "SUCCESS: PRODUCT_LISTED";
-                    
-                    document.getElementById('add-product-form').reset();
-                    document.getElementById('image-preview').innerHTML = "No image selected";
-                    
-                    setTimeout(() => { window.location.href = "inventory.html"; }, 1500);
-                } else {
-                    throw new Error(res.error);
-                }
-
-            } catch (error) {
-                statusMsg.style.display = "block";
-                statusMsg.style.backgroundColor = "#f44336";
-                statusMsg.innerHTML = "ERROR: " + error.message;
-                btn.disabled = false;
-                btn.innerText = "List Product";
-            }
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            logoutUser().then(() => window.location.href = "../auth/login.html");
-        });
-    </script>
+    document.getElementById('productForm').addEventListener('submit', async(e)=>{
+      e.preventDefault();
+      let valid = true;
+      ['nameErr','catErr','priceErr','stockErr'].forEach(id=>document.getElementById(id).classList.remove('show'));
+      ['productName','category','price','stock'].forEach(id=>document.getElementById(id).classList.remove('error'));
+      const name  = document.getElementById('productName').value.trim();
+      const cat   = document.getElementById('category').value;
+      const price = parseFloat(document.getElementById('price').value);
+      const stock = parseInt(document.getElementById('stock').value);
+      const desc  = document.getElementById('description').value.trim();
+      const image = document.getElementById('imageUrl').value.trim();
+      if (!name)        { document.getElementById('nameErr').classList.add('show');  document.getElementById('productName').classList.add('error'); valid=false; }
+      if (!cat)         { document.getElementById('catErr').classList.add('show');   document.getElementById('category').classList.add('error');    valid=false; }
+      if (!price||price<=0){ document.getElementById('priceErr').classList.add('show'); document.getElementById('price').classList.add('error');   valid=false; }
+      if (isNaN(stock)) { document.getElementById('stockErr').classList.add('show'); document.getElementById('stock').classList.add('error');     valid=false; }
+      if (!valid) return;
+      const btn = document.getElementById('submitBtn');
+      setLoadingState(btn, true, 'Adding product...');
+      try {
+        const result = await ProductsAPI.add({ name, category:cat, description:desc, price, stock, image, vendorId:session.uid });
+        if (result.success) {
+          showSuccess('Product added successfully!');
+          setTimeout(()=>window.location.href='inventory.html',1500);
+        } else { showToast('Failed to add product.','error'); setLoadingState(btn,false); }
+      } catch(err) { handleError(err,'add-product'); setLoadingState(btn,false); }
+    });
+  </script>
 </body>
 </html>

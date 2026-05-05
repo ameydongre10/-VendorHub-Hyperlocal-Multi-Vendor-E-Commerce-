@@ -1,143 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VendorHub | Secure Access Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/auth.css">
-    <style>
-        /* Techfest Cyberpunk Overrides */
-        body {
-            background: #050505; /* Deep space black */
-            font-family: 'Rajdhani', sans-serif;
-        }
-
-        .auth-container {
-            border: 2px solid #00f2fe;
-            background: rgba(0, 0, 0, 0.85) !important;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3), inset 0 0 15px rgba(0, 242, 254, 0.2);
-            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%); /* Angular tech edges */
-            padding: 3rem 2rem;
-        }
-
-        h2 {
-            font-family: 'Orbitron', sans-serif;
-            text-align: center;
-            color: #00f2fe;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 10px #00f2fe;
-        }
-
-        .form-group input {
-            background: rgba(0, 242, 254, 0.05) !important;
-            border: 1px solid rgba(0, 242, 254, 0.3) !important;
-            color: #fff !important;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 500;
-            letter-spacing: 1px;
-            padding: 15px !important;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus {
-            border-color: #00f2fe !important;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
-            background: rgba(0, 242, 254, 0.1) !important;
-        }
-
-        .auth-btn {
-            background: transparent;
-            border: 2px solid #00f2fe;
-            color: #00f2fe;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: 0.4s;
-            margin-top: 1rem;
-        }
-
-        .auth-btn:hover {
-            background: #00f2fe;
-            color: #000;
-            box-shadow: 0 0 30px #00f2fe;
-            transform: translateY(-2px);
-        }
-
-        .auth-footer a {
-            color: #00f2fe;
-            text-decoration: none;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-        }
-
-        /* Scanline Effect */
-        .auth-container::after {
-            content: " ";
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 242, 254, 0.05) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.02));
-            background-size: 100% 4px, 3px 100%;
-            pointer-events: none;
-            z-index: 2;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In – VendorHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px}
+    body{font-family:'Inter',sans-serif;background:#0a0b10;color:#fff;min-height:100vh;display:flex;align-items:stretch}
+    a{color:inherit;text-decoration:none}
+    .auth-layout{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;width:100%}
+    .auth-branding{background:linear-gradient(135deg,rgba(0,210,255,0.08),rgba(58,123,213,0.12));border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:3rem;text-align:center;position:relative;overflow:hidden}
+    .auth-branding::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(0,210,255,0.1) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(123,47,255,0.08) 0%,transparent 60%)}
+    .brand-logo{font-family:'Orbitron',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,#00d2ff,#3a7bd5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1.5rem;position:relative}
+    .brand-tagline{font-size:1.6rem;font-weight:700;line-height:1.3;margin-bottom:1rem;position:relative}
+    .brand-sub{color:#a0aec0;font-size:.95rem;line-height:1.7;max-width:340px;position:relative}
+    .brand-features{list-style:none;margin-top:2.5rem;display:flex;flex-direction:column;gap:.75rem;position:relative;text-align:left}
+    .brand-features li{display:flex;align-items:center;gap:.75rem;color:#a0aec0;font-size:.875rem}
+    .brand-features li span:first-child{width:28px;height:28px;border-radius:8px;background:rgba(0,210,255,0.12);border:1px solid rgba(0,210,255,0.2);display:flex;align-items:center;justify-content:center;font-size:.875rem;flex-shrink:0}
+    .auth-form-section{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:3rem 2.5rem;background:rgba(10,11,16,0.95)}
+    .form-card{width:100%;max-width:420px}
+    .form-title{font-size:1.75rem;font-weight:700;margin-bottom:.5rem}
+    .form-sub{color:#a0aec0;font-size:.9rem;margin-bottom:2rem}
+    .form-group{margin-bottom:1.25rem}
+    .form-label{display:block;font-size:.85rem;font-weight:500;color:#a0aec0;margin-bottom:.5rem}
+    .form-input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:.95rem;outline:none;transition:border-color .2s,box-shadow .2s;font-family:inherit}
+    .form-input:focus{border-color:#00d2ff;box-shadow:0 0 0 3px rgba(0,210,255,0.12)}
+    .form-input::placeholder{color:#4a5568}
+    .form-input.error{border-color:#ef4444}
+    .field-error{font-size:.78rem;color:#ef4444;margin-top:.35rem;display:none}
+    .field-error.show{display:block}
+    .form-footer-link{display:flex;justify-content:flex-end;margin-top:.25rem}
+    .form-footer-link a{font-size:.8rem;color:#00d2ff;transition:opacity .2s}
+    .form-footer-link a:hover{opacity:.8}
+    .btn-submit{width:100%;padding:.875rem;border-radius:10px;font-size:1rem;font-weight:600;background:linear-gradient(135deg,#00d2ff,#3a7bd5);color:#fff;border:none;cursor:pointer;transition:transform .2s,box-shadow .2s,opacity .2s;margin-top:.5rem}
+    .btn-submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 18px rgba(0,210,255,.4)}
+    .btn-submit:disabled{opacity:.65;cursor:not-allowed}
+    .divider{display:flex;align-items:center;gap:1rem;margin:1.5rem 0;color:#4a5568;font-size:.8rem}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.07)}
+    .btn-google{width:100%;padding:.8rem;border-radius:10px;font-size:.9rem;font-weight:500;background:rgba(255,255,255,0.05);color:#a0aec0;border:1px solid rgba(255,255,255,0.1);cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:.75rem;opacity:.5}
+    .form-register{text-align:center;margin-top:1.75rem;font-size:.875rem;color:#a0aec0}
+    .form-register a{color:#00d2ff;font-weight:500}
+    .form-register a:hover{text-decoration:underline}
+    .back-link{position:absolute;top:1.5rem;left:1.5rem;display:flex;align-items:center;gap:.4rem;color:#a0aec0;font-size:.85rem;transition:color .2s}
+    .back-link:hover{color:#fff}
+    @media(max-width:768px){
+      .auth-layout{grid-template-columns:1fr}
+      .auth-branding{display:none}
+      .auth-form-section{padding:2rem 1.5rem}
+    }
+  </style>
 </head>
 <body>
-    <div class="auth-container">
-        <h2>System Login</h2>
-        <form id="login-form">
-            <div class="form-group">
-                <input type="email" id="login-email" placeholder="ACCESS_ID (EMAIL)" required>
-            </div>
-            <div class="form-group">
-                <input type="password" id="login-password" placeholder="SECURITY_KEY (PASSWORD)" required>
-            </div>
-            <button type="submit" class="auth-btn">Initialize Connection</button>
+  <a href="../../index.html" class="back-link">← Back to Home</a>
+  <div class="auth-layout">
+    <div class="auth-branding">
+      <div class="brand-logo">VendorHub</div>
+      <h2 class="brand-tagline">Welcome back to the <span style="background:linear-gradient(135deg,#00d2ff,#3a7bd5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Marketplace</span></h2>
+      <p class="brand-sub">Sign in to access your dashboard, track orders, and manage your account.</p>
+      <ul class="brand-features">
+        <li><span>🛍</span><span>Browse thousands of local products</span></li>
+        <li><span>📦</span><span>Real-time order tracking</span></li>
+        <li><span>🤖</span><span>AI-powered product discovery</span></li>
+        <li><span>🔒</span><span>Secure & trusted platform</span></li>
+      </ul>
+    </div>
+    <div class="auth-form-section">
+      <div class="form-card">
+        <h1 class="form-title">Sign In</h1>
+        <p class="form-sub">Enter your credentials to continue</p>
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input type="email" id="email" class="form-input" placeholder="you@example.com" autocomplete="email" required>
+            <div class="field-error" id="emailError">Please enter a valid email address.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required>
+            <div class="field-error" id="passwordError">Password must be at least 6 characters.</div>
+            <div class="form-footer-link"><a href="#">Forgot password?</a></div>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">Sign In</button>
         </form>
-        <p class="auth-footer">New User? <a href="register.html">Register Terminal</a></p>
+        <div class="divider">or</div>
+        <button class="btn-google" disabled>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+          Continue with Google (coming soon)
+        </button>
+        <p class="form-register">Don't have an account? <a href="register.html">Create one</a></p>
+      </div>
     </div>
+  </div>
 
-    <div class="video-bg">
-        <video autoplay muted loop playsinline>
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-circuit-board-interface-with-moving-data-20708-large.mp4" type="video/mp4">
-        </video>
-    </div>
+  <script type="module">
+    import { loginUser } from '../../assets/js/modules/auth.js';
+    import { showToast, showSuccess, handleError, setLoadingState } from '../../assets/js/modules/error-handler.js';
+    import { redirectAfterLogin } from '../../assets/js/modules/auth-manager.js';
 
-    <script type="module">
-        import { loginUser } from "../../assets/js/modules/auth.js";
-        import { initParallax } from "../../assets/js/utils/parallax.js";
+    const form      = document.getElementById('loginForm');
+    const emailEl   = document.getElementById('email');
+    const passEl    = document.getElementById('password');
+    const submitBtn = document.getElementById('submitBtn');
 
-        // Start 3D Tilt
-        initParallax();
+    function validateEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      let valid = true;
+      const email = emailEl.value.trim();
+      const pass  = passEl.value;
 
-            const res = await loginUser(email, password);
+      document.getElementById('emailError').classList.remove('show');
+      document.getElementById('passwordError').classList.remove('show');
+      emailEl.classList.remove('error'); passEl.classList.remove('error');
 
-            if (res.success) {
-                if (res.role === 'admin') window.location.href = "../admin/dashboard.html";
-                else if (res.role === 'seller') {
-                    if (res.status === 'pending') alert("ACCESS DENIED: ACCOUNT PENDING APPROVAL");
-                    else if (res.status === 'rejected') alert("ACCESS DENIED: CREDENTIALS REVOKED");
-                    else window.location.href = "../seller/dashboard.html";
-                } else window.location.href = "../buyer/shop.html";
-            } else {
-                alert("ERROR: " + res.error.toUpperCase());
-            }
-        });
-    </script>
+      if (!validateEmail(email)) {
+        document.getElementById('emailError').classList.add('show');
+        emailEl.classList.add('error'); valid = false;
+      }
+      if (pass.length < 6) {
+        document.getElementById('passwordError').classList.add('show');
+        passEl.classList.add('error'); valid = false;
+      }
+      if (!valid) return;
+
+      setLoadingState(submitBtn, true, 'Signing in...');
+      try {
+        const result = await loginUser(email, pass);
+        if (result.success) {
+          showSuccess('Welcome back!');
+          const blocked = redirectAfterLogin(result.role, result.status);
+          if (blocked) { showToast(blocked.message, 'warning'); setLoadingState(submitBtn, false); }
+        } else {
+          showToast(result.error || 'Invalid email or password.', 'error');
+          setLoadingState(submitBtn, false);
+        }
+      } catch(err) {
+        handleError(err, 'login');
+        setLoadingState(submitBtn, false);
+      }
+    });
+  </script>
 </body>
 </html>
