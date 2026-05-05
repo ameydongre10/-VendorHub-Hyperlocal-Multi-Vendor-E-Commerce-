@@ -127,9 +127,10 @@ To use `firebase-config-secure.js` in a page:
 
 | File | Purpose |
 |---|---|
-| `vercel.json` | Vercel project configuration (build command, output dir, routing) |
-| `vercel-build.js` | Build script: copies static files and injects env vars |
-| `package.json` | Defines `build` / `vercel-build` npm scripts |
+| `vercel.json` | Vercel project configuration (build command, output dir, routing) — **only one at repo root** |
+| `vercel-build.js` | Build script: copies static files, injects env vars, and validates output |
+| `build-verify.js` | Post-build verification: confirms all critical files exist in `dist/` |
+| `package.json` | Defines `build` / `vercel-build` / `verify` npm scripts |
 | `.env.example` | Template for required environment variable keys |
 | `.env.local.example` | Template for local development (fill in real values) |
 | `.gitignore` | Prevents committing `.env`, `dist/`, `node_modules/`, `__env.js` |
@@ -144,6 +145,7 @@ To use `firebase-config-secure.js` in a page:
 | Symptom | Fix |
 |---|---|
 | Blank page / 404 on sub-pages | Ensure `vercel.json` routes are in place; check Output Directory is `dist` |
+| `index.html does not exist` error on Vercel | Make sure there is only **one** `vercel.json` at the repository root. Delete any `vercel.json` inside sub-directories (e.g. `vendorEcommerce/vercel.json`). Set **Root Directory** to `.` in Vercel project settings. |
 | `Firebase configuration is missing` console error | Verify all `VITE_FIREBASE_*` env vars are set on Vercel and redeploy |
 | `__env.js not found` locally | Run `node vercel-build.js` or create it from `__env.local.example.js` |
 | CSS/JS assets return 404 | Check relative paths in HTML files match the depth from the site root |
