@@ -4,6 +4,7 @@
  * Pre-deployment build script for Vercel.
  * - Copies all static files from vendorEcommerce/vendor-hub/ to dist/
  * - Generates dist/assets/js/config/__env.js from Vercel environment variables
+ * - Validates that dist/index.html exists after the build
  *
  * Run automatically by Vercel via the "buildCommand" in vercel.json.
  * Can also be run locally:  node vercel-build.js
@@ -28,6 +29,19 @@ function copyDir(src, dest) {
       fs.copyFileSync(srcPath, destPath);
     }
   }
+}
+
+// ─── 0. Validate source directory ───────────────────────────────────────────
+
+if (!fs.existsSync(SOURCE_DIR)) {
+  console.error(`❌  Source directory not found: ${SOURCE_DIR}`);
+  process.exit(1);
+}
+
+const sourceIndexHtml = path.join(SOURCE_DIR, 'index.html');
+if (!fs.existsSync(sourceIndexHtml)) {
+  console.error(`❌  index.html not found in source: ${sourceIndexHtml}`);
+  process.exit(1);
 }
 
 // ─── 1. Copy static files ────────────────────────────────────────────────────
@@ -58,5 +72,14 @@ const envOutDir = path.join(DIST_DIR, 'assets', 'js', 'config');
 if (!fs.existsSync(envOutDir)) fs.mkdirSync(envOutDir, { recursive: true });
 fs.writeFileSync(path.join(envOutDir, '__env.js'), envContent);
 console.log('    ✓ __env.js generated');
+
+// ─── 3. Post-build validation ────────────────────────────────────────────────
+
+const distIndexHtml = path.join(DIST_DIR, 'index.html');
+if (!fs.existsSync(distIndexHtml)) {
+  console.error('❌  Post-build validation failed: dist/index.html not found');
+  process.exit(1);
+}
+console.log('    ✓ dist/index.html verified');
 
 console.log('\n✅  Build complete — output in dist/');
