@@ -63,20 +63,6 @@ VendorHub is architected as an edge-delivered, decoupled three-tier application 
 └─────────────────────────┘ └─────────────────────────┘ └─────────────────────────┘
 ```
 
-### Visual Architecture Flowchart
-
-```mermaid
-flowchart TD
-    Client["Client Tier: Buyer, Seller, Admin Apps"]
-    LogicEngine["Services Engine: Auth, Cart, Orders, AI"]
-    CloudTier["Cloud Tier: Firebase Auth, Firestore, Gemini AI"]
-    EdgeDelivery["Edge Tier: Vercel CDN, Clean Router, Env Builder"]
-
-    EdgeDelivery --> Client
-    Client --> LogicEngine
-    LogicEngine --> CloudTier
-```
-
 ---
 
 ## 🔄 User Workflows & Operational Sequences
@@ -97,26 +83,6 @@ flowchart TD
 ( Placed ──► Dispatched ──► Delivered )
 ```
 
-```mermaid
-sequenceDiagram
-    actor Buyer as Consumer
-    participant UI as Buyer Shop
-    participant AI as Gemini 1.5 Flash
-    participant Cart as Cart Engine
-    participant DB as Cloud Firestore
-
-    Buyer->>UI: Enter search term
-    UI->>AI: Expand semantic synonyms
-    AI-->>UI: Return expanded tags
-    UI->>DB: Fetch matching catalog products
-    DB-->>UI: Return active inventory
-    Buyer->>UI: Add item to cart
-    UI->>Cart: Validate stock and persist
-    Buyer->>UI: Submit checkout
-    UI->>DB: Create order and decrement stock
-    DB-->>UI: Order confirmed
-```
-
 ---
 
 ### 2. 🏪 Merchant Lifecycle & Inventory Workflow
@@ -131,15 +97,6 @@ sequenceDiagram
 │ 6. Order Fulfilled │ ◄──  │ 5. Process Orders  │ ◄──────────────┘
 │ 90% payout settled │      │ Update status live │      4. Inventory Management
 └────────────────────┘      └────────────────────┘      Add products, set stock
-```
-
-```mermaid
-flowchart LR
-    Register["1. Merchant Registration"] --> Review["2. Admin Verification"]
-    Review --> Terminal["3. Merchant Terminal Active"]
-    Terminal --> AddProduct["4. Inventory Onboarding"]
-    AddProduct --> ProcessOrder["5. Order Fulfillment"]
-    ProcessOrder --> Settlement["6. 90/10 Revenue Settlement"]
 ```
 
 ---
