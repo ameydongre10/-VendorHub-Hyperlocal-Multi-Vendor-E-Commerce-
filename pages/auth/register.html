@@ -134,15 +134,15 @@
 
             if (res.success) {
                 if (selectedRole === 'seller') {
-                    showAlert("Seller registration submitted! Your account is pending admin approval. Redirecting to login...", true);
+                    showAlert("Merchant terminal activated! Initializing store dashboard...", true);
                     setTimeout(() => {
-                        window.location.href = "login.html?pending=true";
-                    }, 2500);
+                        window.location.href = "../seller/dashboard.html";
+                    }, 900);
                 } else {
-                    showAlert("Account created successfully! Redirecting to shop...", true);
+                    showAlert("Account created successfully! Redirecting to marketplace...", true);
                     setTimeout(() => {
                         window.location.href = "../buyer/shop.html";
-                    }, 1200);
+                    }, 900);
                 }
             } else {
                 showAlert(res.error || "Registration failed. Please try again.");

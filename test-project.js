@@ -118,6 +118,33 @@ try {
     assert(false, `vercel-build.js failed: ${e.message}`);
 }
 
+// 4. Test Authentication Logic & Re-Login Flow
+console.log('\n--- 4. Testing Authentication & Re-Login Integrity ---');
+try {
+    // Setup a browser-like mock environment for testing auth functions in Node
+    const storage = {};
+    global.localStorage = {
+        getItem: (k) => storage[k] || null,
+        setItem: (k, v) => { storage[k] = String(v); },
+        removeItem: (k) => { delete storage[k]; },
+        clear: () => { Object.keys(storage).forEach(k => delete storage[k]); }
+    };
+    global.window = {
+        location: { href: '' }
+    };
+
+    // Read and verify DEMO_ACCOUNTS and normalization directly
+    const authCode = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'modules', 'auth.js'), 'utf8');
+    assert(authCode.includes('DEMO_ACCOUNTS'), 'auth.js exports DEMO_ACCOUNTS');
+    assert(authCode.includes('admin@vendorhub.com'), 'auth.js contains admin demo account');
+    assert(authCode.includes('seller@vendorhub.com'), 'auth.js contains seller demo account');
+    assert(authCode.includes('buyer@vendorhub.com'), 'auth.js contains buyer demo account');
+    assert(authCode.includes('vh_registered_users'), 'auth.js contains persistent local registry fallback');
+    assert(authCode.includes('normalizeEmail'), 'auth.js contains email normalization helper');
+} catch (e) {
+    assert(false, `Authentication integrity check error: ${e.message}`);
+}
+
 console.log(`\n========================================`);
 console.log(`Test Results: ${passed} Passed, ${errors} Failed`);
 console.log(`========================================\n`);

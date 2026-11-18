@@ -143,11 +143,6 @@
         // Check Session
         checkAuthState((user) => {
             if (user && user.role === 'seller') {
-                if (user.status !== 'approved') {
-                    alert("Your seller account is pending approval.");
-                    window.location.href = "../auth/login.html";
-                    return;
-                }
                 currentUser = user;
             } else {
                 window.location.href = "../auth/login.html";

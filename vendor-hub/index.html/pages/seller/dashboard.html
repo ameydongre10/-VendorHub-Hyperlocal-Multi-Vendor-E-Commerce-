@@ -85,18 +85,12 @@
         // Auth Gate
         checkAuthState(async (user) => {
             if (!user || user.role !== 'seller') {
-                alert("ACCESS DENIED: Merchant credentials required.");
                 window.location.href = "../auth/login.html";
                 return;
             }
 
-            if (user.status !== 'approved') {
-                alert("Your merchant account is pending administrator approval.");
-                window.location.href = "../auth/login.html";
-                return;
-            }
-
-            document.getElementById('vendor-info').innerText = `Logged in as: ${user.name || 'Merchant'} (${user.email || user.uid})`;
+            const statusNote = user.status === 'approved' ? '' : ' [Preview Mode]';
+            document.getElementById('vendor-info').innerText = `Logged in as: ${user.name || 'Merchant'} (${user.email || user.uid})${statusNote}`;
 
             // Load Seller Stats
             try {

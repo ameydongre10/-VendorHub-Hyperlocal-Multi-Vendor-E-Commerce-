@@ -35,6 +35,26 @@
             border: 1px solid #52c41a;
             color: #73d13d;
         }
+
+        .demo-chip-btn {
+            background: rgba(0, 210, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .demo-chip-btn:hover {
+            border-color: var(--accent-primary);
+            background: rgba(0, 210, 255, 0.2);
+            color: #fff;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -51,7 +71,19 @@
             </div>
             <button type="submit" id="submit-btn" class="auth-btn">Initialize Connection</button>
         </form>
-        <p class="auth-footer">New User? <a href="register.html" style="color:var(--accent-primary)">Register Terminal</a></p>
+
+        <div style="margin-top: 1.5rem; border-top: 1px solid var(--glass-border); padding-top: 1.2rem;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-family: 'Orbitron', sans-serif; margin-bottom: 8px; text-align: center; letter-spacing: 1px;">
+                ⚡ 1-Click Demo Credentials
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="demo-chip-btn" data-email="admin@vendorhub.com" data-pass="admin123">🛡️ Admin</button>
+                <button type="button" class="demo-chip-btn" data-email="seller@vendorhub.com" data-pass="seller123">🏪 Seller</button>
+                <button type="button" class="demo-chip-btn" data-email="buyer@vendorhub.com" data-pass="buyer123">🛍️ Buyer</button>
+            </div>
+        </div>
+
+        <p class="auth-footer" style="margin-top: 1.2rem;">New User? <a href="register.html" style="color:var(--accent-primary)">Register Terminal</a></p>
     </div>
 
     <script type="module">
@@ -69,10 +101,19 @@
             alertBox.style.display = 'block';
         }
 
-        // Check if redirected after seller registration
+        // Demo quick-fill listeners
+        document.querySelectorAll('.demo-chip-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('login-email').value = btn.dataset.email;
+                document.getElementById('login-password').value = btn.dataset.pass;
+                showAlert(`Selected ${btn.textContent.trim()} credentials. Click Initialize Connection or press Enter.`, 'info');
+            });
+        });
+
+        // Check if redirected after registration
         const params = new URLSearchParams(window.location.search);
-        if (params.get('pending') === 'true') {
-            showAlert("Registration submitted! Your seller application is pending admin approval.", 'info');
+        if (params.get('registered') === 'true') {
+            showAlert("Account registered successfully! Enter your password to log in.", 'success');
         }
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -82,34 +123,24 @@
             btn.innerText = "Authenticating...";
             alertBox.style.display = 'none';
 
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
+            const email = (document.getElementById('login-email').value || '').trim();
+            const password = (document.getElementById('login-password').value || '').trim();
 
             const res = await loginUser(email, password);
 
             if (res.success) {
-                showAlert("Access granted. Initializing session...", 'success');
+                showAlert(`Access granted. Welcome, ${res.name || 'User'}! Redirecting...`, 'success');
                 setTimeout(() => {
                     if (res.role === 'admin') {
                         window.location.href = "../admin/dashboard.html";
                     } else if (res.role === 'seller') {
-                        if (res.status === 'pending') {
-                            showAlert("ACCESS DENIED: Your seller account is pending admin approval.", 'error');
-                            btn.disabled = false;
-                            btn.innerText = "Initialize Connection";
-                        } else if (res.status === 'rejected') {
-                            showAlert("ACCESS DENIED: Account application was rejected by administrator.", 'error');
-                            btn.disabled = false;
-                            btn.innerText = "Initialize Connection";
-                        } else {
-                            window.location.href = "../seller/dashboard.html";
-                        }
+                        window.location.href = "../seller/dashboard.html";
                     } else {
                         window.location.href = "../buyer/shop.html";
                     }
-                }, 800);
+                }, 700);
             } else {
-                showAlert("ERROR: " + (res.error || "Authentication failed").toUpperCase(), 'error');
+                showAlert(res.error || "Authentication failed. Check your access credentials.", 'error');
                 btn.disabled = false;
                 btn.innerText = "Initialize Connection";
             }
