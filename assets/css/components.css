@@ -64,6 +64,26 @@
     text-transform: uppercase;
 }
 
+.rating-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(10, 14, 23, 0.85);
+    backdrop-filter: blur(8px);
+    color: #ffb703;
+    border: 1px solid rgba(255, 183, 3, 0.4);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
 .product-card-body {
     padding: 1.25rem;
     display: flex;

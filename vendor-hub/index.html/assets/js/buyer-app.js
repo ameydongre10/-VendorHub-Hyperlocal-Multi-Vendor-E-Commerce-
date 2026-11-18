@@ -61,6 +61,11 @@ export const renderFilteredProducts = (filterQuery = '') => {
         );
     }
 
+    const statusEl = document.getElementById('market-status');
+    if (statusEl) {
+        statusEl.textContent = `Live Network Active (${filtered.length} ${filtered.length === 1 ? 'Product' : 'Products'})`;
+    }
+
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div class="empty-state-box" style="grid-column: 1 / -1;">

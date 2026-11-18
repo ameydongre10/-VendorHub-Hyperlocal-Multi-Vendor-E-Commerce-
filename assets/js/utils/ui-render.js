@@ -20,6 +20,8 @@ export const renderProductCard = (product) => {
     const stock = typeof product.stock === 'number' ? product.stock : parseInt(product.stock, 10) || 0;
     const isOutOfStock = stock <= 0;
     const isLowStock = stock > 0 && stock <= 5;
+    const rating = product.rating ? Number(product.rating).toFixed(1) : '4.9';
+    const reviews = product.reviewsCount || 24;
 
     let stockBadge = `<span class="badge badge-stock in-stock">In Stock (${stock})</span>`;
     if (isOutOfStock) {
@@ -33,6 +35,7 @@ export const renderProductCard = (product) => {
             <div class="product-image-wrap">
                 <img src="${escapeHtml(pImage)}" alt="${pName}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'">
                 <span class="category-tag">${pCategory}</span>
+                <span class="rating-badge">★ ${rating} (${reviews})</span>
             </div>
             <div class="product-card-body">
                 <div class="vendor-tag">Vendor: ${pVendor}</div>
