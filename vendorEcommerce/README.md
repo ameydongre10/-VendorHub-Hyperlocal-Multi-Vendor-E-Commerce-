@@ -23,51 +23,58 @@
 
 ## 🏗️ System Architecture
 
-VendorHub is architected as an edge-delivered, decoupled three-tier application backed by serverless cloud primitives and generative AI services:
+VendorHub is architected as an edge-delivered, decoupled three-tier application backed by serverless cloud primitives and generative AI services. 
+
+### Architecture Topology
+
+```
++─────────────────────────────────────────────────────────────────────────────+
+│                       VENDORHUB SYSTEM ARCHITECTURE                         │
++─────────────────────────────────────────────────────────────────────────────+
+                                       │
+                        [ Vercel Global Edge CDN ]
+                                       │
+     ┌─────────────────────────────────┴─────────────────────────────────┐
+     ▼                                 ▼                                 ▼
+┌─────────────────────────┐ ┌─────────────────────────┐ ┌─────────────────────────┐
+│   🛍️ BUYER MARKETPLACE  │ │   🏪 MERCHANT TERMINAL  │ │ 🛡️ ADMIN COMMAND CENTER │
+│   /pages/buyer/shop     │ │   /pages/seller/dash    │ │   /pages/admin/dash     │
+│   • Semantic AI Search  │ │   • Realtime Inventory  │ │   • Merchant KYC Review │
+│   • Persistent Cart     │ │   • Order Fulfillment   │ │   • Revenue Accounting  │
+│   • Live Tracking Stepper│ │   • Stock Level Alerts  │ │   • Platform Moderation │
+└───────────┬─────────────┘ └───────────┬─────────────┘ └───────────┬─────────────┘
+            │                           │                           │
+            └─────────────────────┐     │     ┌─────────────────────┘
+                                  ▼     ▼     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CLIENT LOGIC & CORE SERVICES ENGINE                      │
+│   • Auth & RBAC (modules/auth.js)       • Cart Manager (modules/cart.js)    │
+│   • Order Pipeline (modules/orders.js)  • Product Catalog (modules/products)│
+│   • Gemini AI Bridge (ai-service.js)    • 3D Parallax & Cyber-Glass UI      │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+     ┌─────────────────────────────────┼─────────────────────────────────┐
+     ▼                                 ▼                                 ▼
+┌─────────────────────────┐ ┌─────────────────────────┐ ┌─────────────────────────┐
+│   🔑 FIREBASE AUTH      │ │   🔥 CLOUD FIRESTORE    │ │  ✨ GOOGLE GEMINI AI   │
+│   • Role-Based Access   │ │   • Multi-Tab Offline   │ │  • Gemini 1.5 Flash    │
+│   • Secure Session Token│ │   • Snapshot Listeners  │ │  • Semantic Expansion  │
+│   • Protected Endpoints │ │   • Atomic Transactions │ │  • Smart Recommendations│
+└─────────────────────────┘ └─────────────────────────┘ └─────────────────────────┘
+```
+
+### Visual Architecture Flowchart
 
 ```mermaid
 flowchart TD
-    subgraph ClientLayer["🖥️ Presentation & Client Tier"]
-        BuyerApp["🛍️ Buyer Marketplace<br/>(/pages/buyer/shop.html)"]
-        SellerApp["🏪 Merchant Terminal<br/>(/pages/seller/dashboard.html)"]
-        AdminApp["🛡️ Admin Command Center<br/>(/pages/admin/dashboard.html)"]
-        LandingApp["🌐 Brand Gateway<br/>(/index.html)"]
-    end
+    Client["Client Tier: Buyer, Seller, Admin Apps"]
+    LogicEngine["Services Engine: Auth, Cart, Orders, AI"]
+    CloudTier["Cloud Tier: Firebase Auth, Firestore, Gemini AI"]
+    EdgeDelivery["Edge Tier: Vercel CDN, Clean Router, Env Builder"]
 
-    subgraph ServiceLayer["⚙️ Client Service & Logic Engines"]
-        AuthService["🔐 Auth & RBAC Engine<br/>(modules/auth.js)"]
-        CartService["🛒 Cart Lifecycle & Sync<br/>(modules/cart.js)"]
-        OrderService["📦 Order Dispatch & State<br/>(modules/orders.js)"]
-        ProductService["🏷️ Product CRUD & Media<br/>(modules/products.js)"]
-        AIService["🧠 Gemini AI Connector<br/>(modules/ai-service.js)"]
-        TelemetryUI["✨ UI Physics & Theme Engine<br/>(parallax.js + theme-handler.js)"]
-    end
-
-    subgraph CloudLayer["☁️ Serverless Cloud & AI Tier"]
-        FirebaseAuth["🔑 Firebase Auth<br/>(Session Tokens & UID)"]
-        FirestoreDB["🔥 Cloud Firestore<br/>(Offline Persistence Cache)"]
-        GeminiAPI["✨ Google Gemini 1.5 Flash<br/>(Semantic Search & Suggestions)"]
-        ImageCDN["🖼️ ImageKit CDN<br/>(+ Base64 Fallback Pipeline)"]
-    end
-
-    subgraph EdgeLayer["🌍 Edge & Deployment Layer"]
-        VercelCDN["⚡ Vercel Edge Network<br/>(Global CDN Ingress)"]
-        BuildPipeline["⚙️ Universal Multi-Root Builder<br/>(vercel-build.js)"]
-        CleanRouter["🔀 Clean URL Rewriter<br/>(vercel.json)"]
-    end
-
-    BuyerApp --> CartService & AIService & OrderService & TelemetryUI
-    SellerApp --> ProductService & OrderService & TelemetryUI
-    AdminApp --> AuthService & OrderService & TelemetryUI
-    LandingApp --> TelemetryUI & AuthService
-
-    AuthService --> FirebaseAuth
-    CartService --> FirestoreDB
-    OrderService --> FirestoreDB
-    ProductService --> FirestoreDB & ImageCDN
-    AIService --> GeminiAPI
-
-    VercelCDN --> CleanRouter --> BuildPipeline --> ClientLayer
+    EdgeDelivery --> Client
+    Client --> LogicEngine
+    LogicEngine --> CloudTier
 ```
 
 ---
@@ -76,89 +83,110 @@ flowchart TD
 
 ### 1. 🛍️ Buyer Discovery & Checkout Workflow
 
+```
+[ Buyer enters query ] ──► [ Gemini 1.5 Flash expands synonyms ]
+                                      │
+                                      ▼
+[ Firestore filtered query ] ◄── [ Category & keyword matches ]
+             │
+             ▼
+[ Render 3D Parallax Cards ] ──► [ Add to Cart with stock check ]
+                                              │
+                                              ▼
+[ Realtime Order Stepper ] ◄── [ Firestore Atomic Checkout ]
+( Placed ──► Dispatched ──► Delivered )
+```
+
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor Buyer as 👤 Consumer
-    participant UI as 🛍️ Buyer Shop
-    participant AI as 🧠 Gemini 1.5 Flash
-    participant Cart as 🛒 Cart Manager
-    participant DB as 🔥 Cloud Firestore
+    actor Buyer as Consumer
+    participant UI as Buyer Shop
+    participant AI as Gemini 1.5 Flash
+    participant Cart as Cart Engine
+    participant DB as Cloud Firestore
 
-    Buyer->>UI: Enters search query (e.g. "fresh bakery snacks")
-    UI->>AI: Request semantic keyword expansion
-    AI-->>UI: Return synonyms (e.g. ["croissant", "bread", "pastry"])
-    UI->>DB: Query products matching categories & keywords
-    DB-->>UI: Render filtered product cards with 3D parallax
-    Buyer->>UI: Selects quantity & clicks "Add to Cart"
-    UI->>Cart: Validate live stock & persist item
-    Cart-->>UI: Update reactive badge & show toast telemetry
-    Buyer->>UI: Proceed to Checkout
-    UI->>DB: Atomic transaction (Create Order + Decrement Stock)
-    DB-->>UI: Order Placed confirmation (ID: ORD-XXXX)
-    UI->>DB: Subscribe to real-time snapshot listener
-    Note over UI,DB: Live status stepper updates from Placed → Dispatched → Delivered
+    Buyer->>UI: Enter search term
+    UI->>AI: Expand semantic synonyms
+    AI-->>UI: Return expanded tags
+    UI->>DB: Fetch matching catalog products
+    DB-->>UI: Return active inventory
+    Buyer->>UI: Add item to cart
+    UI->>Cart: Validate stock and persist
+    Buyer->>UI: Submit checkout
+    UI->>DB: Create order and decrement stock
+    DB-->>UI: Order confirmed
 ```
 
 ---
 
-### 2. 🏪 Merchant Lifecycle & Fulfillment Workflow
+### 2. 🏪 Merchant Lifecycle & Inventory Workflow
+
+```
+┌────────────────────┐      ┌────────────────────┐      ┌────────────────────┐
+│ 1. Registration    │ ──►  │ 2. KYC Review      │ ──►  │ 3. Merchant Active │
+│ Create store profile│      │ Admin verification │      │ Access dashboard   │
+└────────────────────┘      └────────────────────┘      └─────────┬──────────┘
+                                                                  │
+┌────────────────────┐      ┌────────────────────┐                │
+│ 6. Order Fulfilled │ ◄──  │ 5. Process Orders  │ ◄──────────────┘
+│ 90% payout settled │      │ Update status live │      4. Inventory Management
+└────────────────────┘      └────────────────────┘      Add products, set stock
+```
 
 ```mermaid
 flowchart LR
-    A["📝 Merchant Registration"] --> B["⏳ Application Under Review"]
-    B --> C{"🛡️ Admin Approval"}
-    C -- "Rejected" --> D["❌ Application Denied"]
-    C -- "Approved" --> E["🏪 Merchant Terminal Active"]
-    E --> F["➕ Add New Product<br/>(ImageKit CDN + Base64)"]
-    F --> G["📊 Live Inventory Tracking"]
-    G --> H{"⚠️ Stock <= 5?"}
-    H -- "Yes" --> I["🚨 Low-Stock Banner Alert"]
-    H -- "No" --> J["✅ Normal Operations"]
-    J --> K["📦 Incoming Buyer Order"]
-    K --> L["🚚 Update Status:<br/>Placed → Dispatched → Delivered"]
-    L --> M["💰 Revenue Settlement:<br/>90% Merchant / 10% Platform Fee"]
+    Register["1. Merchant Registration"] --> Review["2. Admin Verification"]
+    Review --> Terminal["3. Merchant Terminal Active"]
+    Terminal --> AddProduct["4. Inventory Onboarding"]
+    AddProduct --> ProcessOrder["5. Order Fulfillment"]
+    ProcessOrder --> Settlement["6. 90/10 Revenue Settlement"]
 ```
 
 ---
 
 ### 3. 🛡️ Admin Governance & Verification Workflow
 
-```mermaid
-flowchart TD
-    Req["📥 Inbound Vendor Applications"] --> Verify["🔍 KYC & Business Verification"]
-    Verify --> Decision{"Pass Verification?"}
-    Decision -- "No" --> Deny["❌ Reject Request with Notes"]
-    Decision -- "Yes" --> Approve["✅ Promote User Role to Vendor"]
-    Approve --> Notify["🔔 Real-Time Merchant Activation"]
-    
-    subgraph PlatformOversight["📈 Platform Command Oversight"]
-        GMV["💰 Gross Marketplace Volume"]
-        TakeRate["🏦 10% Platform Commission"]
-        VendorCount["👥 Active Merchants Count"]
-        OrderMonitor["📦 Global Orders Audit Log"]
-    end
-
-    Approve --> PlatformOversight
+```
+[ Inbound Vendor Request ]
+            │
+            ▼
+[ KYC & Document Audit ] ──► Pass? ──No──► [ Reject with Reason ]
+                                │
+                               Yes
+                                ▼
+                   [ Role Elevated: Seller ]
+                                │
+                                ▼
+       ┌─────────────────────────────────────────────────┐
+       │           Platform Command Telemetry            │
+       │  • Gross Platform Volume (GMV)                  │
+       │  • Platform Commission Revenue (10% take-rate)   │
+       │  • Active Merchants & User Accounts Directory   │
+       │  • Global Order Audit Log & Interventions       │
+       └─────────────────────────────────────────────────┘
 ```
 
 ---
 
 ### 4. 🚀 Multi-Root Vercel Deployment Workflow
 
-```mermaid
-flowchart TD
-    GitPush["💻 git push origin main"] --> VercelHook["⚡ Vercel Webhook Triggered"]
-    VercelHook --> CheckRoot{"📂 Evaluate Root Directory"}
-    CheckRoot -- "vendor-hub/index.html" --> ShimDir["📁 vendor-hub/index.html Directory"]
-    CheckRoot -- "vendorEcommerce" --> SubDir["📁 vendorEcommerce Directory"]
-    CheckRoot -- "./ (Root)" --> RepoRoot["📁 Repository Root"]
-
-    ShimDir & SubDir & RepoRoot --> RunBuild["⚙️ Execute vercel-build.js"]
-    RunBuild --> InjectEnv["🔑 Inject process.env into assets/js/config/__env.js"]
-    InjectEnv --> StageDist["📦 Output staged to dist/"]
-    StageDist --> CleanUrls["🌐 Apply cleanUrls & SPA rewrites"]
-    CleanUrls --> EdgeLive["✅ Live Global Deployment (200 OK)"]
+```
+[ git push origin main ]
+            │
+            ▼
+[ Vercel Webhook Activated ]
+            │
+            ▼
+[ Evaluate Root Directory: vendor-hub/index.html | vendorEcommerce | . ]
+            │
+            ▼
+[ Run vercel-build.js: Inject Environment Variables to __env.js ]
+            │
+            ▼
+[ Stage Static Distribution into dist/ ]
+            │
+            ▼
+[ Deploy to Vercel Global Edge CDN (200 OK) ]
 ```
 
 ---
@@ -167,7 +195,7 @@ flowchart TD
 
 * **Space-Age Cyber-Glass UI**: High-contrast obsidian dark palette (`#0a0e17`) with frosted-glass component overlays (`backdrop-filter: blur(12px)`), neon cyan/blue indicators, and concentric border radiuses.
 * **Dual Theme Engine**: Seamless transition between dark and light modes with CSS custom properties (`[data-theme="dark"]` and `[data-theme="light"]`) synced to `localStorage`.
-* **Hardware-Accelerated 3D Parallax**: Clamped, requestAnimationFrame-backed card tilt physics responding organically to cursor vectors without layout recalculation.
+* **Hardware-Accelerated 3D Parallax**: Clamped, `requestAnimationFrame`-backed card tilt physics responding organically to cursor vectors without layout recalculation.
 * **Tactile Feedback & Telemetry**: Non-blocking toast telemetry alerts for user actions, stock warnings, and status changes with optical balance.
 
 ---
