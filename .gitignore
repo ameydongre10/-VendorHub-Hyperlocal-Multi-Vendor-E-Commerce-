@@ -1,14 +1,15 @@
-# ─── Environment files (never commit these) ─────────────────────────────────
+# ─── Environment files (never commit these) ──────────────────────────────────
 .env
 .env.local
 .env.*.local
-vendorEcommerce/vendor-hub/assets/js/config/__env.js
-vendorEcommerce/vendor-hub/assets/js/config/__env.local.js
+**/assets/js/config/__env.js
+**/assets/js/config/__env.local.js
 
 # ─── Build output ────────────────────────────────────────────────────────────
 dist/
 build/
 .vercel/
+**/dist/
 
 # ─── Node / npm ──────────────────────────────────────────────────────────────
 node_modules/

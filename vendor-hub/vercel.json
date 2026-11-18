@@ -1,0 +1,11 @@
+{
+  "buildCommand": "node vercel-build.js",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/((?!assets/|pages/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

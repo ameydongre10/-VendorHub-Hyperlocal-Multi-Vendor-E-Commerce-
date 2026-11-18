@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VendorHub - Hyperlocal Multi-Vendor E-Commerce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <style>
+        .hero-section {
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 3.2rem;
+            line-height: 1.15;
+            margin-bottom: 1.2rem;
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 3rem;
+        }
+
+        .portal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2.2rem 1.8rem;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .portal-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 16px 36px var(--accent-glow);
+        }
+
+        .portal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 0 12px var(--accent-glow));
+        }
+
+        .portal-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-primary);
+        }
+
+        .portal-card p {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .features-banner {
+            margin-top: 4rem;
+            padding: 2.5rem;
+            background: var(--glass-fill);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            text-align: center;
+        }
+
+        .feature-item h4 {
+            color: var(--accent-primary);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+
+        .feature-item p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                VendorHub <span class="brand-badge">HYPERLOCAL</span>
+            </a>
+
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="pages/buyer/shop.html">🛍️ Shop</a></li>
+                    <li><a href="pages/buyer/all-orders.html">📦 My Orders</a></li>
+                    <li>
+                        <a href="pages/buyer/cart.html" class="cart-link">
+                            🛒 Cart <span id="navbar-cart-count" class="cart-badge" style="display:none;">0</span>
+                        </a>
+                    </li>
+                    <li><button id="theme-toggle" class="theme-toggle-btn">🌓 Theme</button></li>
+                    <li id="auth-action-container"></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div style="display:inline-block; margin-bottom:1rem; padding:4px 14px; background:rgba(0,210,255,0.1); border:1px solid var(--accent-primary); border-radius:20px; font-family:'Orbitron',sans-serif; font-size:0.75rem; color:var(--accent-primary); letter-spacing:1px;">
+                ⚡ NEXT-GEN HYPERLOCAL COMMERCE PLATFORM
+            </div>
+            <h1 class="hero-title">Bridging Local Merchants & Modern Buyers</h1>
+            <p class="hero-subtitle">
+                An ultra-responsive three-tier marketplace architecture with AI-driven smart discovery, real-time stock replenishment alerts, and transparent order tracking.
+            </p>
+            <div id="hero-cta-container" class="hero-actions">
+                <a href="pages/buyer/shop.html" class="btn-primary" style="padding:14px 28px; font-size:0.95rem;">
+                    🛍️ Explore Market
+                </a>
+                <a href="pages/auth/login.html" class="btn-secondary" style="padding:14px 28px; font-size:0.95rem;">
+                    🔐 Access Portal
+                </a>
+                <a href="pages/auth/register.html" class="btn-secondary" style="padding:14px 28px; font-size:0.95rem;">
+                    🚀 Register Account
+                </a>
+            </div>
+        </section>
+
+        <section class="dashboard-container" style="max-width: 1200px; background:transparent; border:none; box-shadow:none;">
+            <div style="text-align: center;">
+                <h2>Unified Tri-Portal Ecosystem</h2>
+                <p style="color:var(--text-secondary)">Engineered with distinct clearance levels for Buyers, Merchants, and Administrators</p>
+            </div>
+
+            <div class="portal-grid">
+                <div class="portal-card stat-card">
+                    <div class="portal-icon">🛒</div>
+                    <h3>Consumer Portal</h3>
+                    <p>AI-assisted search with semantic expansion, live cart state synchronization, seamless checkout, and real-time package tracking.</p>
+                    <a href="pages/buyer/shop.html" class="btn-card-details" style="font-weight:700; padding:10px;">Open Buyer View →</a>
+                </div>
+
+                <div class="portal-card stat-card">
+                    <div class="portal-icon">🏪</div>
+                    <h3>Merchant Terminal</h3>
+                    <p>Live inventory management, instant stock adjustments, low-stock threshold alerts, cloud asset uploads, and net earnings tracking.</p>
+                    <a href="pages/seller/dashboard.html" class="btn-card-details" style="font-weight:700; padding:10px;">Merchant Dashboard →</a>
+                </div>
+
+                <div class="portal-card stat-card">
+                    <div class="portal-icon">🛡️</div>
+                    <h3>Admin Command</h3>
+                    <p>Onboarding verification for pending vendor applications, global order telemetry, platform 10% commission analytics, and store governance.</p>
+                    <a href="pages/admin/dashboard.html" class="btn-card-details" style="font-weight:700; padding:10px;">Admin Console →</a>
+                </div>
+            </div>
+
+            <div class="features-banner stat-card">
+                <div class="feature-item">
+                    <h4>🤖 Google Gemini AI</h4>
+                    <p>Semantic keyword expansion & smart companion recommendations</p>
+                </div>
+                <div class="feature-item">
+                    <h4>⚡ Cloud Firestore</h4>
+                    <p>Multi-tab persistent offline caching & real-time snapshot sync</p>
+                </div>
+                <div class="feature-item">
+                    <h4>💎 3D Parallax UI</h4>
+                    <p>Cyber-glass obsidian theme with adaptive cursor tilt physics</p>
+                </div>
+                <div class="feature-item">
+                    <h4>🔒 Role-Based RBAC</h4>
+                    <p>Strict access gating with pending seller approval lifecycle</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 VendorHub Hyperlocal Multi-Vendor Platform. Built for local commerce innovation.</p>
+    </footer>
+
+    <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

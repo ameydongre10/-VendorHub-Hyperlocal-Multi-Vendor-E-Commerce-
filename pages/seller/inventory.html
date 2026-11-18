@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory | VendorHub Merchant Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <style>
+        .inventory-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .inventory-header {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1.2fr 1.5fr;
+            padding: 1.2rem 1.5rem;
+            background: rgba(0, 210, 255, 0.08);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: var(--accent-primary);
+            border-bottom: 1px solid var(--glass-border);
+            text-transform: uppercase;
+        }
+
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1.2fr 1.5fr;
+            padding: 1.2rem 1.5rem;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background 0.2s;
+        }
+
+        .inventory-row:hover {
+            background: rgba(0, 210, 255, 0.02);
+        }
+
+        .inventory-row:last-child {
+            border-bottom: none;
+        }
+
+        .stock-badge-pill {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .stock-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-stock-adjust {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            width: 26px;
+            height: 26px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-stock-adjust:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .btn-action-delete {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-action-delete:hover {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 77, 79, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub <span class="brand-badge">SELLER</span></h3>
+            <ul>
+                <li><a href="dashboard.html">📊 Overview</a></li>
+                <li><a href="inventory.html" class="active">📦 My Products</a></li>
+                <li><a href="add-product.html">➕ Add Product</a></li>
+                <li><a href="../buyer/shop.html">🛍️ View Shop</a></li>
+            </ul>
+
+            <div class="aside-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">🌓 Switch Theme</button>
+                <a href="#" id="logout-btn" style="color:var(--danger)">🚪 Terminate Session</a>
+            </div>
+        </aside>
+
+        <main>
+            <header style="display:flex; justify-content:space-between; align-items:flex-end;">
+                <div>
+                    <h2>Inventory Management</h2>
+                    <p>Live inventory stock levels and catalog operations</p>
+                </div>
+                <a href="add-product.html" class="btn-primary" style="font-size:0.8rem; padding:8px 18px;">+ Add New Product</a>
+            </header>
+            
+            <div class="inventory-card stat-card" style="padding:0; text-align:left;">
+                <div class="inventory-header">
+                    <span>Product Asset</span>
+                    <span>Unit Price</span>
+                    <span>Stock Management</span>
+                    <span>Operations</span>
+                </div>
+                <div id="inventory-table-body">
+                    <div style="padding: 40px; text-align: center; color: var(--accent-primary);">Synchronizing with Database...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { getVendorProducts, deleteProduct, updateProductStock } from "../../assets/js/modules/products.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { showToast, formatCurrency } from "../../assets/js/utils/helpers.js";
+
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser().then(() => window.location.href = "../auth/login.html");
+        });
+
+        let currentVendorId = null;
+
+        checkAuthState((user) => {
+            if (user && user.role === 'seller') {
+                if (user.status !== 'approved') {
+                    alert("Your seller account is pending approval.");
+                    window.location.href = "../auth/login.html";
+                    return;
+                }
+                currentVendorId = user.uid;
+                refreshInventory(user.uid);
+            } else {
+                window.location.href = "../auth/login.html";
+            }
+        });
+
+        async function refreshInventory(uid) {
+            const products = await getVendorProducts(uid);
+            const container = document.getElementById('inventory-table-body');
+            
+            if (products.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state-box" style="margin:2rem auto; max-width:500px;">
+                        <div class="empty-state-icon">📦</div>
+                        <h3>No Products Listed</h3>
+                        <p>You haven't listed any items in your store catalog yet.</p>
+                        <a href="add-product.html" class="empty-state-btn">+ Add First Product</a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = products.map(p => {
+                const stock = typeof p.stock === 'number' ? p.stock : parseInt(p.stock, 10) || 0;
+                const isLow = stock <= 5;
+                const priceFormatted = formatCurrency(p.price);
+
+                return `
+                    <div class="inventory-row" id="row-${p.id}">
+                        <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                            <img src="${p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'}" 
+                                 style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid var(--border-subtle); flex-shrink:0;">
+                            <div style="min-width:0;">
+                                <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</strong>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">${p.category || 'General'}</span>
+                            </div>
+                        </div>
+                        <span style="font-family:'Orbitron',sans-serif; color:var(--accent-primary); font-weight:700;">${priceFormatted}</span>
+                        <div>
+                            <div class="stock-control">
+                                <button class="btn-stock-adjust" onclick="adjustStock('${p.id}', -1)">-</button>
+                                <span id="stock-val-${p.id}" class="stock-badge-pill ${isLow ? 'badge-stock low-stock' : 'badge-stock in-stock'}">${stock} Units</span>
+                                <button class="btn-stock-adjust" onclick="adjustStock('${p.id}', 1)">+</button>
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <a href="../buyer/product-details.html?id=${p.id}" style="font-size:0.85rem; font-weight:600; padding:6px 10px; border:1px solid var(--border-subtle); border-radius:6px; color:var(--text-secondary);">Preview</a>
+                            <button class="btn-action-delete" onclick="handleDelete('${p.id}')">Decommission</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.adjustStock = async (id, delta) => {
+            const stockBadge = document.getElementById(`stock-val-${id}`);
+            const currentStock = parseInt(stockBadge.innerText, 10) || 0;
+            const newStock = Math.max(0, currentStock + delta);
+
+            const res = await updateProductStock(id, newStock);
+            if (res.success) {
+                stockBadge.innerText = `${newStock} Units`;
+                stockBadge.className = `stock-badge-pill ${newStock <= 5 ? 'badge-stock low-stock' : 'badge-stock in-stock'}`;
+                showToast(`Stock updated to ${newStock} units`, "info", 1500);
+            } else {
+                showToast("Failed to update stock: " + res.error, "error");
+            }
+        };
+
+        window.handleDelete = async (id) => {
+            if (confirm("Confirm asset decommissioning? This product will be permanently removed from the marketplace.")) {
+                const res = await deleteProduct(id);
+                if (res.success) {
+                    showToast("Product decommissioned from catalog.", "success");
+                    const row = document.getElementById(`row-${id}`);
+                    if (row) row.remove();
+                } else {
+                    showToast("Operation Failed: " + res.error, "error");
+                }
+            }
+        };
+    </script>
+</body>
+</html>

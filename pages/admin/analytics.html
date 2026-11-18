@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Analytics - Admin | VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub <span class="brand-badge">ADMIN</span></h3>
+            <ul>
+                <li><a href="dashboard.html">📊 Overview</a></li>
+                <li><a href="vendor-requests.html">👥 Vendor Requests</a></li>
+                <li><a href="analytics.html" class="active">📈 Analytics</a></li>
+                <li><a href="../buyer/shop.html">🛍️ View Shop</a></li>
+            </ul>
+
+            <div class="aside-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">🌓 Switch Theme</button>
+                <a href="#" id="logout-btn" style="color:var(--danger)">🚪 Terminate Session</a>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <h2>Platform Performance & Economics</h2>
+                <p>Real-time analytics and revenue streams across all marketplace sectors</p>
+            </header>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Gross Sales</h4>
+                    <p class="currency">$<span id="total-sales">0.00</span></p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Completed Orders</h4>
+                    <p id="total-orders">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Platform Net Revenue (10%)</h4>
+                    <p class="currency">$<span id="platform-revenue">0.00</span></p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Registered Merchants</h4>
+                    <p id="total-vendors">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Registered Buyers</h4>
+                    <p id="total-buyers">0</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Monetization Model</h4>
+                    <p style="font-size:1.3rem; color:var(--accent-primary)">10% Flat Fee</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="../../assets/js/admin-app.js"></script>
+</body>
+</html>

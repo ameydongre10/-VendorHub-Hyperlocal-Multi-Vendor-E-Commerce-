@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub <span class="brand-badge">SELLER</span></h3>
+            <ul>
+                <li><a href="dashboard.html" class="active">📊 Overview</a></li>
+                <li><a href="inventory.html">📦 My Products</a></li>
+                <li><a href="add-product.html">➕ Add Product</a></li>
+                <li><a href="../buyer/shop.html">🛍️ View Shop</a></li>
+            </ul>
+
+            <div class="aside-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">🌓 Switch Theme</button>
+                <a href="#" id="logout-btn" style="color:var(--danger)">🚪 Terminate Session</a>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <h2>Merchant Command Terminal</h2>
+                <div id="vendor-info" style="color:var(--text-muted); font-size:0.95rem;">Active Merchant Terminal</div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Net Earnings (After 10% Platform Fee)</h4>
+                    <p id="stat-earnings" class="currency">$0.00</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Gross Sales</h4>
+                    <p id="stat-gross" style="color:var(--text-primary)">$0.00</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Orders Received</h4>
+                    <p id="stat-orders">0</p>
+                </div>
+            </div>
+
+            <section id="alerts" style="margin-bottom: 2.5rem;">
+                <h3>Stock Alerts & Replenishment</h3>
+                <ul id="stock-alerts-list" style="list-style:none; margin-top:1rem; display:flex; flex-direction:column; gap:8px;">
+                    <li style="color:var(--text-muted)">Checking product stock levels...</li>
+                </ul>
+            </section>
+
+            <section id="vendor-orders">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>Orders For Your Products</h3>
+                </div>
+                <div id="vendor-orders-container">
+                    <p style="color:var(--text-muted)">Loading your store's customer orders...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { getVendorStats, getLowStockProducts } from "../../assets/js/modules/vendor.js";
+        import { getVendorOrders, updateOrderStatus } from "../../assets/js/modules/orders.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { showToast, formatCurrency, formatDate } from "../../assets/js/utils/helpers.js";
+
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser().then(() => window.location.href = "../auth/login.html");
+        });
+
+        // Auth Gate
+        checkAuthState(async (user) => {
+            if (!user || user.role !== 'seller') {
+                alert("ACCESS DENIED: Merchant credentials required.");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            if (user.status !== 'approved') {
+                alert("Your merchant account is pending administrator approval.");
+                window.location.href = "../auth/login.html";
+                return;
+            }
+
+            document.getElementById('vendor-info').innerText = `Logged in as: ${user.name || 'Merchant'} (${user.email || user.uid})`;
+
+            // Load Seller Stats
+            try {
+                const stats = await getVendorStats(user.uid);
+                document.getElementById('stat-earnings').innerText = formatCurrency(stats.netEarnings);
+                document.getElementById('stat-gross').innerText = formatCurrency(stats.totalEarnings);
+                document.getElementById('stat-orders').innerText = stats.orderCount;
+
+                // Load Low Stock Alerts
+                const lowStock = await getLowStockProducts(user.uid, 5);
+                const list = document.getElementById('stock-alerts-list');
+                list.innerHTML = "";
+                
+                if (lowStock.length === 0) {
+                    list.innerHTML = `
+                        <li style="color:var(--success); display:flex; align-items:center; gap:8px;">
+                            <span>✓</span> All product assets are well stocked.
+                        </li>`;
+                } else {
+                    lowStock.forEach(p => {
+                        const li = document.createElement('li');
+                        li.style.cssText = `
+                            padding: 10px 14px;
+                            background: var(--danger-bg);
+                            border: 1px solid var(--danger);
+                            color: var(--danger);
+                            border-radius: 8px;
+                            font-weight: 600;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        `;
+                        li.innerHTML = `
+                            <span>⚠️ <strong>${p.name}</strong> is running low (${p.stock} units remaining)</span>
+                            <a href="inventory.html" style="color:var(--danger); font-size:0.85rem; text-decoration:underline;">Update Stock →</a>
+                        `;
+                        list.appendChild(li);
+                    });
+                }
+
+                // Render Orders
+                await renderVendorOrders(user.uid);
+
+            } catch (error) {
+                console.error("Error loading dashboard data:", error);
+                showToast("Failed to load seller metrics", "error");
+            }
+        });
+
+        async function renderVendorOrders(vendorId) {
+            const orders = await getVendorOrders(vendorId);
+            const container = document.getElementById('vendor-orders-container');
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state-box" style="padding:2rem;">
+                        <p style="margin:0;">No orders received for your store yet.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => {
+                const shortId = order.id.slice(-6);
+                const totalFormatted = formatCurrency(order.totalAmount);
+                const dateFormatted = formatDate(order.createdAt);
+                
+                return `
+                    <div class="order-item">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                                <strong>Order #${shortId}</strong>
+                                <span class="status-tag status-${(order.status || 'placed').toLowerCase()}">${order.status || 'Placed'}</span>
+                            </div>
+                            <div style="font-size:0.85rem; color:var(--text-muted);">
+                                <span>Customer: ${order.buyerName || 'Buyer'}</span> • 
+                                <span>Date: ${dateFormatted}</span>
+                            </div>
+                            <div style="font-family:'Orbitron',sans-serif; color:var(--accent-primary); font-weight:700; margin-top:4px;">
+                                ${totalFormatted}
+                            </div>
+                        </div>
+                        <div>
+                            <select onchange="changeStatus('${order.id}', this.value)" style="padding:6px 12px; font-size:0.85rem; border-radius:6px;">
+                                <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
+                                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.changeStatus = async (id, status) => {
+            const res = await updateOrderStatus(id, status);
+            if (res.success) {
+                showToast(`Order status updated to: ${status}`, "success");
+            } else {
+                showToast("Error updating order: " + res.error, "error");
+            }
+        };
+    </script>
+</body>
+</html>

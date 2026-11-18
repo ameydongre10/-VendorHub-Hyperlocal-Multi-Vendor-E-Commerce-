@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Requests - Admin | VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub <span class="brand-badge">ADMIN</span></h3>
+            <ul>
+                <li><a href="dashboard.html">📊 Overview</a></li>
+                <li><a href="vendor-requests.html" class="active">👥 Vendor Requests</a></li>
+                <li><a href="analytics.html">📈 Analytics</a></li>
+                <li><a href="../buyer/shop.html">🛍️ View Shop</a></li>
+            </ul>
+
+            <div class="aside-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">🌓 Switch Theme</button>
+                <a href="#" id="logout-btn" style="color:var(--danger)">🚪 Terminate Session</a>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <h2>Vendor Onboarding Verification</h2>
+                <p>Authorize or decline pending merchant applications</p>
+            </header>
+            
+            <table id="requests-table">
+                <thead>
+                    <tr>
+                        <th>Vendor / Store Name</th>
+                        <th>Contact Email</th>
+                        <th>Application Date</th>
+                        <th>Operations</th>
+                    </tr>
+                </thead>
+                <tbody id="vendor-list">
+                    <tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--text-muted)">Querying database records...</td></tr>
+                </tbody>
+            </table>
+
+            <div id="no-requests" style="display: none;" class="empty-state-box">
+                <div class="empty-state-icon">✅</div>
+                <h3>All Clear</h3>
+                <p>No pending vendor requests at this time.</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="../../assets/js/admin-app.js"></script>
+</body>
+</html>

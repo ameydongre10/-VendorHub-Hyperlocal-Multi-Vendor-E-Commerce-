@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Hyperlocal | VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="../../index.html" class="brand-logo">
+                VendorHub <span class="brand-badge">HYPERLOCAL</span>
+            </a>
+
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="shop.html" class="active">🛍️ Shop</a></li>
+                    <li><a href="all-orders.html">📦 My Orders</a></li>
+                    <li>
+                        <a href="cart.html" class="cart-link">
+                            🛒 Cart <span id="navbar-cart-count" class="cart-badge" style="display:none;">0</span>
+                        </a>
+                    </li>
+                    <li id="portal-link-container"></li>
+                    <li><button id="theme-toggle" class="theme-toggle-btn">🌓 Theme</button></li>
+                    <li id="auth-action-container"></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard-container" style="max-width: 1300px; margin-top: 1.5rem;">
+        <div id="role-banner" style="display:none; padding:12px 18px; margin-bottom:1.5rem; background:rgba(0,210,255,0.1); border:1px solid var(--accent-primary); border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
+        </div>
+
+        <section class="search-toolbar">
+            <div class="search-input-wrap">
+                <input type="text" id="shop-search-input" placeholder="Search local products, brands, or categories...">
+                <button type="button" id="btn-ai-search" class="btn-ai-search">
+                    <span>✨ AI Smart Search</span>
+                </button>
+            </div>
+
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="all">All Items</button>
+                <button class="category-tab" data-category="Electronics">Electronics</button>
+                <button class="category-tab" data-category="Groceries">Groceries</button>
+                <button class="category-tab" data-category="Clothing">Clothing</button>
+                <button class="category-tab" data-category="Home">Home & Kitchen</button>
+                <button class="category-tab" data-category="Books">Books</button>
+                <button class="category-tab" data-category="Sports">Sports</button>
+            </div>
+
+            <div id="ai-suggestions-container" class="ai-suggestions-bar" style="display: none;"></div>
+        </section>
+
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Hyperlocal Market Inventory</h2>
+                <span id="market-status" style="font-size:0.85rem; color:var(--text-muted);">Live Network Active</span>
+            </div>
+
+            <div id="shop-product-grid" class="product-grid">
+                <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--accent-primary);">
+                    Synchronizing with Local Market Network...
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initShop } from "../../assets/js/buyer-app.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // Header Auth State
+        const authContainer = document.getElementById('auth-action-container');
+        const portalContainer = document.getElementById('portal-link-container');
+        const roleBanner = document.getElementById('role-banner');
+
+        checkAuthState((user) => {
+            if (user) {
+                authContainer.innerHTML = `
+                    <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${user.name || 'User'}</span>
+                    <button id="logout-btn" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:0.85rem;">Logout</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    logoutUser().then(() => window.location.reload());
+                });
+
+                if (user.role === 'seller') {
+                    portalContainer.innerHTML = `<a href="../seller/dashboard.html" style="color:var(--accent-primary); font-weight:700;">Merchant Terminal</a>`;
+                    roleBanner.style.display = 'flex';
+                    roleBanner.innerHTML = `
+                        <span>Logged in as <strong>Merchant</strong> (${user.name || 'Seller'}). Manage inventory and customer orders in your dashboard.</span>
+                        <a href="../seller/dashboard.html" class="btn-primary" style="padding:6px 14px; font-size:0.75rem;">Open Seller Portal →</a>
+                    `;
+                } else if (user.role === 'admin') {
+                    portalContainer.innerHTML = `<a href="../admin/dashboard.html" style="color:var(--accent-primary); font-weight:700;">Admin Panel</a>`;
+                    roleBanner.style.display = 'flex';
+                    roleBanner.innerHTML = `
+                        <span>Logged in as <strong>Platform Administrator</strong>.</span>
+                        <a href="../admin/dashboard.html" class="btn-primary" style="padding:6px 14px; font-size:0.75rem;">Admin Panel →</a>
+                    `;
+                }
+            } else {
+                authContainer.innerHTML = `
+                    <a href="../auth/login.html" class="btn-primary" style="padding:6px 14px; font-size:0.8rem;">Login</a>
+                `;
+            }
+        });
+
+        // Initialize Shop
+        initShop().then(() => {
+            initParallax();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "vendorhub-deployment-shim",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node vercel-build.js",
+    "vercel-build": "node vercel-build.js"
+  }
+}

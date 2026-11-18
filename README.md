@@ -129,6 +129,22 @@ npx serve dist
 
 ---
 
+## ☁️ Vercel Deployment & Root Directory Configuration
+
+The repository supports **zero-config multi-root deployment**. Whether your Vercel project is configured with:
+1. **Default / Root (`.`)** — Standard repository root deployment.
+2. **`vendor-hub/index.html`** — Compatibility shim directory (auto-resolves and builds).
+3. **`vendor-hub`** — Direct hub root directory.
+4. **`vendorEcommerce/vendor-hub`** — Monorepo source directory.
+
+### Quick Settings Fix in Vercel Dashboard (Optional Best Practice):
+1. Navigate to **Project Settings → General**.
+2. Under **Root Directory**, click **Edit**.
+3. Clear the field or set it to `./` (leave blank to use the repository root).
+4. Click **Save** and trigger a **Redeploy**.
+
+---
+
 ## ☁️ Environment Variables Configuration (Vercel)
 
 Configure the following variables in **Vercel Project Settings → Environment Variables**:
