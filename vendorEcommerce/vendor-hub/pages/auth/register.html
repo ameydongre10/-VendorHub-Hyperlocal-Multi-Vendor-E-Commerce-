@@ -4,25 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join VendorHub | Next-Gen Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/auth.css">
     <style>
-        /* Techfest-Style Overrides */
-        .auth-container {
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), inset 0 0 20px rgba(0, 255, 255, 0.1);
-            background: rgba(10, 10, 10, 0.8) !important;
-        }
-
-        h2 {
-            font-family: 'Orbitron', sans-serif; /* Futuristic Font */
-            letter-spacing: 4px;
-            background: linear-gradient(to right, #00f2fe, #4facfe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-        }
-
         .role-selector {
             display: flex;
             gap: 10px;
@@ -31,100 +16,137 @@
 
         .role-btn {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #4facfe;
-            background: transparent;
-            color: #4facfe;
+            padding: 12px;
+            border: 1px solid var(--accent-primary);
+            background: rgba(0, 210, 255, 0.05);
+            color: var(--accent-primary);
             cursor: pointer;
-            transition: 0.3s;
-            border-radius: 4px;
+            transition: all 0.3s;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
             font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .role-btn.active {
-            background: #4facfe;
-            color: white;
-            box-shadow: 0 0 15px #4facfe;
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+            border-color: #00f2fe;
         }
 
-        input {
-            background: rgba(255,255,255,0.05) !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            color: white !important;
-            padding: 12px !important;
+        .alert-box {
+            display: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
         }
 
-        input:focus {
-            border-color: #00f2fe !important;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-            outline: none;
+        .alert-error {
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid #ff4444;
+            color: #ff6b6b;
+        }
+
+        .alert-success {
+            background: rgba(82, 196, 26, 0.15);
+            border: 1px solid #52c41a;
+            color: #73d13d;
         }
     </style>
 </head>
 <body>
     <div class="auth-container">
         <h2>Initiate Account</h2>
+        <div id="auth-alert" class="alert-box"></div>
+
         <div class="role-selector">
-            <button type="button" class="role-btn active" onclick="setRole('buyer', this)">Buyer</button>
-            <button type="button" class="role-btn" onclick="setRole('seller', this)">Seller</button>
+            <button type="button" class="role-btn active" id="btn-role-buyer">Buyer</button>
+            <button type="button" class="role-btn" id="btn-role-seller">Seller</button>
         </div>
 
         <form id="register-form">
             <div class="form-group">
-                <input type="text" id="reg-name" placeholder="Full Name" required>
+                <input type="text" id="reg-name" placeholder="Full Name" required autocomplete="name">
             </div>
             <div class="form-group">
-                <input type="email" id="reg-email" placeholder="Email Address" required>
+                <input type="email" id="reg-email" placeholder="Email Address" required autocomplete="email">
             </div>
             <div class="form-group">
-                <input type="password" id="reg-password" placeholder="Create Password" required>
+                <input type="password" id="reg-password" placeholder="Create Password" minlength="6" required autocomplete="new-password">
             </div>
-            <button type="submit" class="auth-btn">Authorize Registration</button>
+            <button type="submit" id="submit-btn" class="auth-btn">Authorize Registration</button>
         </form>
-        <p class="auth-footer">Already a member? <a href="login.html" style="color:#00f2fe">Access Portal</a></p>
-    </div>
-
-    <div class="video-bg">
-        <video autoplay muted loop playsinline>
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-blue-and-purple-lines-20707-large.mp4" type="video/mp4">
-        </video>
+        <p class="auth-footer">Already a member? <a href="login.html" style="color:var(--accent-primary)">Access Portal</a></p>
     </div>
 
     <script type="module">
         import { registerUser } from "../../assets/js/modules/auth.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { initTheme } from "../../assets/js/utils/theme-handler.js";
+
+        initTheme();
+        initParallax();
 
         let selectedRole = 'buyer';
 
-        window.setRole = (role, btn) => {
-            selectedRole = role;
-            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        };
+        const buyerBtn = document.getElementById('btn-role-buyer');
+        const sellerBtn = document.getElementById('btn-role-seller');
+        const alertBox = document.getElementById('auth-alert');
 
-        initParallax();
+        buyerBtn.addEventListener('click', () => {
+            selectedRole = 'buyer';
+            buyerBtn.classList.add('active');
+            sellerBtn.classList.remove('active');
+        });
+
+        sellerBtn.addEventListener('click', () => {
+            selectedRole = 'seller';
+            sellerBtn.classList.add('active');
+            buyerBtn.classList.remove('active');
+        });
+
+        function showAlert(message, isSuccess = false) {
+            alertBox.textContent = message;
+            alertBox.className = `alert-box ${isSuccess ? 'alert-success' : 'alert-error'}`;
+            alertBox.style.display = 'block';
+        }
 
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
             btn.innerText = "Processing...";
+            alertBox.style.display = 'none';
 
-            const userData = {
-                name: document.getElementById('reg-name').value,
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            const res = await registerUser(email, password, {
+                name: name,
                 role: selectedRole
-            };
-
-            const res = await registerUser(
-                document.getElementById('reg-email').value,
-                document.getElementById('reg-password').value,
-                userData
-            );
+            });
 
             if (res.success) {
-                alert("Account Created! Re-routing to Dashboard...");
-                window.location.href = selectedRole === 'seller' ? "../seller/dashboard.html" : "../buyer/shop.html";
+                if (selectedRole === 'seller') {
+                    showAlert("Seller registration submitted! Your account is pending admin approval. Redirecting to login...", true);
+                    setTimeout(() => {
+                        window.location.href = "login.html?pending=true";
+                    }, 2500);
+                } else {
+                    showAlert("Account created successfully! Redirecting to shop...", true);
+                    setTimeout(() => {
+                        window.location.href = "../buyer/shop.html";
+                    }, 1200);
+                }
             } else {
-                alert("Error: " + res.error);
+                showAlert(res.error || "Registration failed. Please try again.");
+                btn.disabled = false;
                 btn.innerText = "Authorize Registration";
             }
         });

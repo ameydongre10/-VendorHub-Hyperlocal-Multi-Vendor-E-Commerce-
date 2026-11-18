@@ -4,115 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/dashboard.css">
-    <style>
-        .order-admin-card {
-            background: #fff;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            border-left: 5px solid #3498db;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .order-info span { display: block; font-size: 0.85rem; color: #666; }
-        .admin-controls select { padding: 5px; border-radius: 4px; }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/components.css">
 </head>
 <body>
     <div class="dashboard-wrapper">
         <aside>
-            <h3>Admin Panel</h3>
+            <h3>VendorHub <span class="brand-badge">ADMIN</span></h3>
             <ul>
-                <li><a href="dashboard.html" class="active">Overview</a></li>
-                <li><a href="vendor-requests.html">Vendor Requests</a></li>
-                <li><a href="analytics.html">Detailed Analytics</a></li>
-                <li><a href="#" id="logout-btn">Logout</a></li>
+                <li><a href="dashboard.html" class="active">📊 Overview</a></li>
+                <li><a href="vendor-requests.html">👥 Vendor Requests</a></li>
+                <li><a href="analytics.html">📈 Analytics</a></li>
+                <li><a href="../buyer/shop.html">🛍️ View Shop</a></li>
             </ul>
+
+            <div class="aside-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">🌓 Switch Theme</button>
+                <a href="#" id="logout-btn" style="color:var(--danger)">🚪 Terminate Session</a>
+            </div>
         </aside>
 
         <main>
-            <h2>Platform Overview</h2>
+            <header>
+                <h2>Platform Command Terminal</h2>
+                <p>Global multi-vendor administration & order governance</p>
+            </header>
             
             <div class="stats-grid">
                 <div class="stat-card">
-                    <h4>Gross Sales</h4>
-                    <p id="total-sales">$0</p>
+                    <h4>Gross Platform Sales</h4>
+                    <p id="total-sales" class="currency">$0.00</p>
                 </div>
                 <div class="stat-card">
                     <h4>Total Orders</h4>
                     <p id="total-orders">0</p>
                 </div>
+                <div class="stat-card">
+                    <h4>Platform Revenue (10%)</h4>
+                    <p id="platform-revenue" class="currency">$0.00</p>
+                </div>
             </div>
 
-            <section style="margin-top: 2rem;">
-                <h3>Global Order Management</h3>
-                <div id="admin-orders-list">
-                    <p>Loading orders...</p>
+            <section style="margin-bottom: 2.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3>Pending Vendor Applications</h3>
+                    <a href="vendor-requests.html" style="font-size:0.9rem; font-weight:600;">View Full Table →</a>
+                </div>
+                <div id="vendor-list">
+                    <p style="color:var(--text-muted)">Querying pending vendor applications...</p>
                 </div>
             </section>
 
-            <section style="margin-top: 2rem;">
-                <h3>Pending Vendor Approvals</h3>
-                <div id="vendor-list"></div>
+            <section>
+                <h3>Global Order Stream</h3>
+                <div id="admin-orders-list" style="margin-top:1rem;">
+                    <p style="color:var(--text-muted)">Synchronizing with orders collection...</p>
+                </div>
             </section>
         </main>
     </div>
 
     <script type="module">
         import { getPlatformAnalytics, getPendingVendors, updateVendorStatus } from "../../assets/js/modules/admin.js";
-        // Import order functions
         import { updateOrderStatus } from "../../assets/js/modules/orders.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { showToast, formatCurrency, formatDate } from "../../assets/js/utils/helpers.js";
         import { db } from "../../assets/js/config/firebase-config.js";
-        import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Auth Gate
+        checkAuthState((user) => {
+            if (!user || user.role !== 'admin') {
+                alert("ACCESS DENIED: Administrator permissions required.");
+                window.location.href = "../auth/login.html";
+            }
+        });
+
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser().then(() => window.location.href = "../auth/login.html");
+        });
 
         async function initAdmin() {
-            // 1. Load Analytics
-            const stats = await getPlatformAnalytics();
-            document.getElementById('total-sales').innerText = `$${stats.totalSales.toFixed(2)}`;
-            document.getElementById('total-orders').innerText = stats.totalOrders;
+            try {
+                // 1. Load Analytics
+                const stats = await getPlatformAnalytics();
+                document.getElementById('total-sales').innerText = formatCurrency(stats.totalSales);
+                document.getElementById('total-orders').innerText = stats.totalOrders;
+                document.getElementById('platform-revenue').innerText = formatCurrency(stats.platformRevenue);
 
-            // 2. Load Pending Vendors
-            const vendors = await getPendingVendors();
-            const list = document.getElementById('vendor-list');
-            list.innerHTML = vendors.length ? vendors.map(v => `
-                <div class="vendor-card">
-                    <p><strong>${v.name}</strong> (${v.email})</p>
-                    <button class="approve-btn" onclick="approveVendor('${v.id}')">Approve</button>
-                    <button class="reject-btn" onclick="rejectVendor('${v.id}')">Reject</button>
-                </div>
-            `).join('') : "<p>No pending requests.</p>";
+                // 2. Load Pending Vendors
+                const vendors = await getPendingVendors();
+                const list = document.getElementById('vendor-list');
+                if (vendors.length === 0) {
+                    list.innerHTML = `<div class="empty-state-box" style="padding:1.5rem;"><p style="margin:0;">No pending vendor applications at this time.</p></div>`;
+                } else {
+                    list.innerHTML = vendors.map(v => `
+                        <div class="cart-item" style="margin-bottom:0.8rem;">
+                            <div>
+                                <strong style="font-size:1.1rem;">${v.name || 'Unnamed Vendor'}</strong>
+                                <span style="display:block; color:var(--text-muted); font-size:0.85rem;">Email: ${v.email || 'N/A'} • Applied: ${formatDate(v.createdAt)}</span>
+                            </div>
+                            <div>
+                                <button class="approve-btn" onclick="approveVendor('${v.id}')">Approve</button>
+                                <button class="reject-btn" onclick="rejectVendor('${v.id}')">Reject</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
 
-            // 3. Load All Orders for Admin
-            loadAllOrders();
+                // 3. Load All Orders
+                await loadAllOrders();
+            } catch (err) {
+                console.error("Admin dashboard init failed:", err);
+                showToast("Failed to load dashboard metrics", "error");
+            }
         }
 
         async function loadAllOrders() {
             const container = document.getElementById('admin-orders-list');
             try {
-                // Fetch every order on the platform
-                const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-                const snapshot = await getDocs(q);
+                const snapshot = await getDocs(collection(db, "orders"));
                 
                 if (snapshot.empty) {
-                    container.innerHTML = "<p>No orders found on the platform.</p>";
+                    container.innerHTML = `<div class="empty-state-box" style="padding:2rem;"><p style="margin:0;">No orders placed on the platform yet.</p></div>`;
                     return;
                 }
 
-                container.innerHTML = snapshot.docs.map(doc => {
-                    const order = doc.data();
+                const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                orders.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+                container.innerHTML = orders.map(order => {
+                    const shortId = order.id.slice(-6);
+                    const shortBuyer = (order.buyerId || 'N/A').slice(-6);
+                    const totalFormatted = formatCurrency(order.totalAmount);
+                    const itemCount = Array.isArray(order.items) ? order.items.length : 1;
+
                     return `
-                        <div class="order-admin-card">
-                            <div class="order-info">
-                                <strong>Order #${doc.id.slice(-6)}</strong>
-                                <span>Buyer ID: ${order.buyerId.slice(-6)}</span>
-                                <span>Amount: $${order.totalAmount.toFixed(2)}</span>
+                        <div class="order-item">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                                    <strong>Order #${shortId}</strong>
+                                    <span class="status-tag status-${(order.status || 'placed').toLowerCase()}">${order.status || 'Placed'}</span>
+                                </div>
+                                <div style="font-size:0.85rem; color:var(--text-muted);">
+                                    <span>Customer: ${order.buyerName || shortBuyer}</span> • 
+                                    <span>Items: ${itemCount}</span> • 
+                                    <span>Date: ${formatDate(order.createdAt)}</span>
+                                </div>
+                                <div style="font-family:'Orbitron',sans-serif; color:var(--accent-primary); font-weight:700; margin-top:4px;">
+                                    ${totalFormatted}
+                                </div>
                             </div>
-                            <div class="admin-controls">
-                                <select onchange="adminUpdateStatus('${doc.id}', this.value)">
+                            <div>
+                                <select onchange="adminUpdateStatus('${order.id}', this.value)" style="padding:6px 12px; font-size:0.85rem; border-radius:6px;">
                                     <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
                                     <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
                                     <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
@@ -123,44 +176,41 @@
                     `;
                 }).join('');
             } catch (err) {
-                container.innerHTML = "<p>Error loading orders.</p>";
+                container.innerHTML = `<p style="color:var(--danger)">Failed to load orders: ${err.message}</p>`;
                 console.error(err);
             }
         }
 
-        // Global functions for buttons/dropdowns
         window.approveVendor = async (id) => {
-            await updateVendorStatus(id, 'approved');
-            initAdmin(); // Refresh UI without full reload
+            const res = await updateVendorStatus(id, 'approved');
+            if (res.success) {
+                showToast("Vendor approved successfully!", "success");
+                initAdmin();
+            } else {
+                showToast("Approval failed: " + res.error, "error");
+            }
         };
 
         window.rejectVendor = async (id) => {
-            await updateVendorStatus(id, 'rejected');
-            initAdmin();
+            const res = await updateVendorStatus(id, 'rejected');
+            if (res.success) {
+                showToast("Vendor application rejected.", "warning");
+                initAdmin();
+            } else {
+                showToast("Rejection failed: " + res.error, "error");
+            }
         };
 
         window.adminUpdateStatus = async (orderId, newStatus) => {
             const res = await updateOrderStatus(orderId, newStatus);
             if (res.success) {
-                alert("Order status updated successfully!");
+                showToast(`Order #${orderId.slice(-6)} set to ${newStatus}`, "success");
             } else {
-                alert("Failed to update order: " + res.error);
+                showToast("Failed to update status: " + res.error, "error");
             }
         };
 
         initAdmin();
     </script>
-    <button id="theme-toggle" style="margin: 10px; padding: 5px 10px; cursor: pointer; border-radius: 20px; border: 1px solid #ccc;">
-    🌓 Switch Theme
-</button>
-
-<script type="module">
-    import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
-    
-    // Run on load
-    initTheme();
-
-    document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-</script>
 </body>
 </html>

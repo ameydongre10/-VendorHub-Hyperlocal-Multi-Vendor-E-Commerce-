@@ -8,134 +8,110 @@
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/auth.css">
     <style>
-        /* Techfest Cyberpunk Overrides */
-        body {
-            background: #050505; /* Deep space black */
-            font-family: 'Rajdhani', sans-serif;
-        }
-
-        .auth-container {
-            border: 2px solid #00f2fe;
-            background: rgba(0, 0, 0, 0.85) !important;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3), inset 0 0 15px rgba(0, 242, 254, 0.2);
-            clip-path: polygon(10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%); /* Angular tech edges */
-            padding: 3rem 2rem;
-        }
-
-        h2 {
-            font-family: 'Orbitron', sans-serif;
-            text-align: center;
-            color: #00f2fe;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 10px #00f2fe;
-        }
-
-        .form-group input {
-            background: rgba(0, 242, 254, 0.05) !important;
-            border: 1px solid rgba(0, 242, 254, 0.3) !important;
-            color: #fff !important;
-            font-family: 'Rajdhani', sans-serif;
+        .alert-box {
+            display: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            letter-spacing: 1px;
-            padding: 15px !important;
-            transition: all 0.3s ease;
+            text-align: center;
         }
 
-        .form-group input:focus {
-            border-color: #00f2fe !important;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
-            background: rgba(0, 242, 254, 0.1) !important;
+        .alert-error {
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid #ff4444;
+            color: #ff6b6b;
         }
 
-        .auth-btn {
-            background: transparent;
-            border: 2px solid #00f2fe;
-            color: #00f2fe;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: 0.4s;
-            margin-top: 1rem;
+        .alert-info {
+            background: rgba(0, 210, 255, 0.15);
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
         }
 
-        .auth-btn:hover {
-            background: #00f2fe;
-            color: #000;
-            box-shadow: 0 0 30px #00f2fe;
-            transform: translateY(-2px);
-        }
-
-        .auth-footer a {
-            color: #00f2fe;
-            text-decoration: none;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-        }
-
-        /* Scanline Effect */
-        .auth-container::after {
-            content: " ";
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 242, 254, 0.05) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.02));
-            background-size: 100% 4px, 3px 100%;
-            pointer-events: none;
-            z-index: 2;
+        .alert-success {
+            background: rgba(82, 196, 26, 0.15);
+            border: 1px solid #52c41a;
+            color: #73d13d;
         }
     </style>
 </head>
 <body>
     <div class="auth-container">
         <h2>System Login</h2>
+        <div id="auth-alert" class="alert-box"></div>
+
         <form id="login-form">
             <div class="form-group">
-                <input type="email" id="login-email" placeholder="ACCESS_ID (EMAIL)" required>
+                <input type="email" id="login-email" placeholder="ACCESS_ID (EMAIL)" required autocomplete="email">
             </div>
             <div class="form-group">
-                <input type="password" id="login-password" placeholder="SECURITY_KEY (PASSWORD)" required>
+                <input type="password" id="login-password" placeholder="SECURITY_KEY (PASSWORD)" required autocomplete="current-password">
             </div>
-            <button type="submit" class="auth-btn">Initialize Connection</button>
+            <button type="submit" id="submit-btn" class="auth-btn">Initialize Connection</button>
         </form>
-        <p class="auth-footer">New User? <a href="register.html">Register Terminal</a></p>
-    </div>
-
-    <div class="video-bg">
-        <video autoplay muted loop playsinline>
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-digital-circuit-board-interface-with-moving-data-20708-large.mp4" type="video/mp4">
-        </video>
+        <p class="auth-footer">New User? <a href="register.html" style="color:var(--accent-primary)">Register Terminal</a></p>
     </div>
 
     <script type="module">
         import { loginUser } from "../../assets/js/modules/auth.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { initTheme } from "../../assets/js/utils/theme-handler.js";
 
-        // Start 3D Tilt
+        initTheme();
         initParallax();
+
+        const alertBox = document.getElementById('auth-alert');
+        function showAlert(msg, type = 'error') {
+            alertBox.textContent = msg;
+            alertBox.className = `alert-box alert-${type}`;
+            alertBox.style.display = 'block';
+        }
+
+        // Check if redirected after seller registration
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('pending') === 'true') {
+            showAlert("Registration submitted! Your seller application is pending admin approval.", 'info');
+        }
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = "Authenticating...";
+            alertBox.style.display = 'none';
+
+            const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-password').value;
 
             const res = await loginUser(email, password);
 
             if (res.success) {
-                if (res.role === 'admin') window.location.href = "../admin/dashboard.html";
-                else if (res.role === 'seller') {
-                    if (res.status === 'pending') alert("ACCESS DENIED: ACCOUNT PENDING APPROVAL");
-                    else if (res.status === 'rejected') alert("ACCESS DENIED: CREDENTIALS REVOKED");
-                    else window.location.href = "../seller/dashboard.html";
-                } else window.location.href = "../buyer/shop.html";
+                showAlert("Access granted. Initializing session...", 'success');
+                setTimeout(() => {
+                    if (res.role === 'admin') {
+                        window.location.href = "../admin/dashboard.html";
+                    } else if (res.role === 'seller') {
+                        if (res.status === 'pending') {
+                            showAlert("ACCESS DENIED: Your seller account is pending admin approval.", 'error');
+                            btn.disabled = false;
+                            btn.innerText = "Initialize Connection";
+                        } else if (res.status === 'rejected') {
+                            showAlert("ACCESS DENIED: Account application was rejected by administrator.", 'error');
+                            btn.disabled = false;
+                            btn.innerText = "Initialize Connection";
+                        } else {
+                            window.location.href = "../seller/dashboard.html";
+                        }
+                    } else {
+                        window.location.href = "../buyer/shop.html";
+                    }
+                }, 800);
             } else {
-                alert("ERROR: " + res.error.toUpperCase());
+                showAlert("ERROR: " + (res.error || "Authentication failed").toUpperCase(), 'error');
+                btn.disabled = false;
+                btn.innerText = "Initialize Connection";
             }
         });
     </script>

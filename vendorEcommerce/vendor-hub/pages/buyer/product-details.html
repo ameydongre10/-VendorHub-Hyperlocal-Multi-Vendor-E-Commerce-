@@ -1,1 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <style>
+        .product-detail-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
 
+        .product-gallery {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .product-gallery img {
+            width: 100%;
+            max-height: 440px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .product-info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .product-title {
+            font-size: 2rem;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .product-price-large {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            color: var(--accent-primary);
+            font-weight: 900;
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            white-space: pre-line;
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1.2rem 0;
+        }
+
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 1rem;
+        }
+
+        .recommended-section {
+            margin-top: 4rem;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 2rem;
+        }
+
+        @media (max-width: 860px) {
+            .product-detail-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="../../index.html" class="brand-logo">
+                VendorHub <span class="brand-badge">HYPERLOCAL</span>
+            </a>
+
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="shop.html">🛍️ Shop</a></li>
+                    <li><a href="all-orders.html">📦 My Orders</a></li>
+                    <li>
+                        <a href="cart.html" class="cart-link">
+                            🛒 Cart <span id="navbar-cart-count" class="cart-badge" style="display:none;">0</span>
+                        </a>
+                    </li>
+                    <li><button id="theme-toggle" class="theme-toggle-btn">🌓 Theme</button></li>
+                    <li id="auth-action-container"></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard-container" style="max-width: 1200px;">
+        <div style="margin-bottom: 1.5rem;">
+            <a href="shop.html" style="font-weight: 600; font-size: 0.95rem;">← Back to Market Catalog</a>
+        </div>
+
+        <div id="product-content-area">
+            <div style="padding: 4rem; text-align: center; color: var(--accent-primary);">
+                Loading asset specifications from decentralized store...
+            </div>
+        </div>
+
+        <section id="recommended-area" class="recommended-section" style="display:none;">
+            <h3 style="margin-bottom: 1.5rem;">✨ Recommended Companions (AI Suggested)</h3>
+            <div id="recommended-grid" class="product-grid"></div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { getProductById, getAllProducts } from "../../assets/js/modules/products.js";
+        import { addToCart, getCartCount } from "../../assets/js/modules/cart.js";
+        import { getAIRecommendations } from "../../assets/js/modules/ai-service.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { showToast, formatCurrency, escapeHtml } from "../../assets/js/utils/helpers.js";
+        import { renderProductCard } from "../../assets/js/utils/ui-render.js";
+
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // Header Auth & Cart Setup
+        const authContainer = document.getElementById('auth-action-container');
+        checkAuthState((user) => {
+            if (user) {
+                authContainer.innerHTML = `
+                    <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${user.name || 'User'}</span>
+                    <button id="logout-btn" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:0.85rem;">Logout</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    logoutUser().then(() => window.location.reload());
+                });
+            } else {
+                authContainer.innerHTML = `<a href="../auth/login.html" class="btn-primary" style="padding:6px 14px; font-size:0.8rem;">Login</a>`;
+            }
+        });
+
+        function updateCartBadge() {
+            const count = getCartCount();
+            const badge = document.getElementById('navbar-cart-count');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+        updateCartBadge();
+        window.addEventListener('vendorhub:cartUpdated', updateCartBadge);
+
+        // Read Product ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        if (!productId) {
+            window.location.href = "shop.html";
+        }
+
+        async function loadProduct() {
+            const container = document.getElementById('product-content-area');
+            const product = await getProductById(productId);
+
+            if (!product) {
+                container.innerHTML = `
+                    <div class="empty-state-box">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Product Asset Not Found</h3>
+                        <p>The asset you requested may have been decommissioned or relocated.</p>
+                        <a href="shop.html" class="empty-state-btn">Browse Shop Catalog</a>
+                    </div>
+                `;
+                return;
+            }
+
+            document.title = `${product.name} - VendorHub`;
+            const stock = typeof product.stock === 'number' ? product.stock : parseInt(product.stock, 10) || 0;
+            const isOutOfStock = stock <= 0;
+            const isLowStock = stock > 0 && stock <= 5;
+            const priceFormatted = formatCurrency(product.price);
+
+            let stockBadge = `<span class="badge badge-stock in-stock">In Stock (${stock} units)</span>`;
+            if (isOutOfStock) {
+                stockBadge = `<span class="badge badge-stock out-of-stock">Depleted / Out of Stock</span>`;
+            } else if (isLowStock) {
+                stockBadge = `<span class="badge badge-stock low-stock">Low Stock (${stock} remaining)</span>`;
+            }
+
+            container.innerHTML = `
+                <div class="product-detail-layout">
+                    <div class="product-gallery stat-card">
+                        <img src="${product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'}" alt="${escapeHtml(product.name)}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'">
+                    </div>
+
+                    <div class="product-info-panel">
+                        <div>
+                            <span class="category-tag" style="position:static; display:inline-block; margin-bottom:8px;">${escapeHtml(product.category || 'General')}</span>
+                            <h1 class="product-title">${escapeHtml(product.name)}</h1>
+                            <div style="font-size:0.9rem; color:var(--text-muted); margin-top:4px;">
+                                Verified Merchant: <strong style="color:var(--text-primary)">${escapeHtml(product.vendorName || 'Local Merchant')}</strong>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <span class="product-price-large">${priceFormatted}</span>
+                            ${stockBadge}
+                        </div>
+
+                        <div class="product-description">
+                            ${escapeHtml(product.description || 'No detailed specifications provided for this listing.')}
+                        </div>
+
+                        ${!isOutOfStock ? `
+                            <div class="action-row">
+                                <div class="qty-control">
+                                    <button id="btn-qty-minus" class="qty-btn">-</button>
+                                    <span id="detail-qty-display" class="qty-display">1</span>
+                                    <button id="btn-qty-plus" class="qty-btn">+</button>
+                                </div>
+                                <button id="btn-add-to-cart" class="btn-primary" style="flex-grow:1;">
+                                    🛒 Add to Cart
+                                </button>
+                                <button id="btn-buy-now" class="btn-secondary" style="font-family:'Orbitron',sans-serif; text-transform:uppercase; font-size:0.85rem;">
+                                    ⚡ Buy Now
+                                </button>
+                            </div>
+                        ` : `
+                            <div style="padding:12px; background:var(--danger-bg); border:1px solid var(--danger); border-radius:8px; color:var(--danger); font-weight:bold;">
+                                This asset is currently sold out. Check back soon for merchant restock.
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            initParallax();
+
+            // Quantity and Cart actions
+            let currentQuantity = 1;
+            const minusBtn = document.getElementById('btn-qty-minus');
+            const plusBtn = document.getElementById('btn-qty-plus');
+            const qtyDisplay = document.getElementById('detail-qty-display');
+            const addBtn = document.getElementById('btn-add-to-cart');
+            const buyNowBtn = document.getElementById('btn-buy-now');
+
+            if (plusBtn && minusBtn) {
+                plusBtn.addEventListener('click', () => {
+                    if (currentQuantity < stock) {
+                        currentQuantity++;
+                        qtyDisplay.textContent = currentQuantity;
+                    } else {
+                        showToast(`Maximum stock limit reached (${stock})`, "warning", 1500);
+                    }
+                });
+
+                minusBtn.addEventListener('click', () => {
+                    if (currentQuantity > 1) {
+                        currentQuantity--;
+                        qtyDisplay.textContent = currentQuantity;
+                    }
+                });
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    const res = addToCart(product, currentQuantity);
+                    if (res.success) {
+                        showToast(`Added ${currentQuantity}x "${product.name}" to cart!`, "success");
+                        updateCartBadge();
+                    } else {
+                        showToast(res.error || "Failed to add to cart", "error");
+                    }
+                });
+            }
+
+            if (buyNowBtn) {
+                buyNowBtn.addEventListener('click', () => {
+                    const res = addToCart(product, currentQuantity);
+                    if (res.success) {
+                        window.location.href = "cart.html";
+                    } else {
+                        showToast(res.error || "Failed to proceed to checkout", "error");
+                    }
+                });
+            }
+
+            // Load AI Recommendations
+            loadRecommendations(product);
+        }
+
+        async function loadRecommendations(currentProduct) {
+            try {
+                const allProducts = await getAllProducts();
+                const otherProducts = allProducts.filter(p => p.id !== currentProduct.id);
+                if (otherProducts.length === 0) return;
+
+                const recommended = await getAIRecommendations([currentProduct.name, currentProduct.category], otherProducts);
+                if (recommended && recommended.length > 0) {
+                    const recSection = document.getElementById('recommended-area');
+                    const recGrid = document.getElementById('recommended-grid');
+                    recSection.style.display = 'block';
+                    recGrid.innerHTML = recommended.map(p => renderProductCard(p)).join('');
+
+                    recGrid.querySelectorAll('.btn-card-add-cart').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const p = otherProducts.find(item => item.id === btn.dataset.id);
+                            if (p) {
+                                addToCart(p, 1);
+                                showToast(`Added "${p.name}" to cart!`, "success");
+                                updateCartBadge();
+                            }
+                        });
+                    });
+                }
+            } catch (e) {
+                console.warn("Could not load companion recommendations:", e);
+            }
+        }
+
+        loadProduct();
+    </script>
+</body>
+</html>

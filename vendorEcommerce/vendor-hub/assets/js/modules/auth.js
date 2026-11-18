@@ -19,19 +19,31 @@ export const registerUser = async (email, password, userData) => {
         }
 
         const userId = Date.now().toString(); 
-        await setDoc(doc(db, "users", userId), {
+        const status = userData.role === "seller" ? "pending" : "approved";
+        const newUser = {
             uid: userId,
             email: email,
             password: password, 
-            role: userData.role,
-            name: userData.name,
-            status: userData.role === "seller" ? "pending" : "approved",
+            role: userData.role || "buyer",
+            name: userData.name || "User",
+            status: status,
             createdAt: new Date().toISOString()
-        });
+        };
+
+        await setDoc(doc(db, "users", userId), newUser);
         
-        localStorage.setItem("userSession", JSON.stringify({ uid: userId, role: userData.role }));
-        return { success: true };
+        // Save session
+        const sessionData = { 
+            uid: userId, 
+            email: email,
+            name: newUser.name,
+            role: newUser.role, 
+            status: status 
+        };
+        localStorage.setItem("userSession", JSON.stringify(sessionData));
+        return { success: true, ...sessionData };
     } catch (error) {
+        console.error("Registration error:", error);
         return { success: false, error: error.message };
     }
 };
@@ -52,14 +64,22 @@ export const loginUser = async (email, password) => {
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
 
-        localStorage.setItem("userSession", JSON.stringify({ 
-            uid: userData.uid, 
+        const sessionData = { 
+            uid: userData.uid || userDoc.id, 
+            email: userData.email,
+            name: userData.name || "User",
             role: userData.role,
-            status: userData.status 
-        }));
+            status: userData.status || "approved"
+        };
 
-        return { success: true, role: userData.role, status: userData.status };
+        localStorage.setItem("userSession", JSON.stringify(sessionData));
+
+        return { 
+            success: true, 
+            ...sessionData
+        };
     } catch (error) {
+        console.error("Login error:", error);
         return { success: false, error: error.message };
     }
 };
@@ -69,8 +89,17 @@ export const logoutUser = () => {
     return Promise.resolve();
 };
 
+export const getCurrentUser = () => {
+    try {
+        const session = localStorage.getItem("userSession");
+        return session ? JSON.parse(session) : null;
+    } catch (e) {
+        return null;
+    }
+};
+
 export const checkAuthState = (callback) => {
-    const session = JSON.parse(localStorage.getItem("userSession"));
+    const session = getCurrentUser();
     if (session) {
         callback(session);
     } else {

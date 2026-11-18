@@ -3,50 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Product - VendorHub</title>
+    <title>Add Product - VendorHub Seller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <style>
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 750px;
+            box-shadow: var(--card-shadow);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .form-grid.full {
+            grid-column: span 2;
+        }
+        .upload-dropzone {
+            border: 2px dashed var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            background: var(--input-bg);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-dropzone:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <nav>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="inventory.html">Inventory</a>
-            <a href="#" id="logout-btn">Logout</a>
-        </nav>
+    <div class="dashboard-wrapper">
+        <aside>
+            <h3>VendorHub <span class="brand-badge">SELLER</span></h3>
+            <ul>
+                <li><a href="dashboard.html">📊 Overview</a></li>
+                <li><a href="inventory.html">📦 My Products</a></li>
+                <li><a href="add-product.html" class="active">➕ Add Product</a></li>
+                <li><a href="../buyer/shop.html">🛍️ View Shop</a></li>
+            </ul>
+
+            <div class="aside-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">🌓 Switch Theme</button>
+                <a href="#" id="logout-btn" style="color:var(--danger)">🚪 Terminate Session</a>
+            </div>
+        </aside>
         
         <main>
-            <h2>Add New Product</h2>
-            <form id="add-product-form">
-                <input type="text" id="p-name" placeholder="Product Name" required>
-                <textarea id="p-desc" placeholder="Description" required></textarea>
-                <input type="number" id="p-price" placeholder="Price" required>
-                <input type="number" id="p-stock" placeholder="Initial Stock" required>
-                <input type="text" id="p-category" placeholder="Category" required>
-                
-                <div class="upload-section">
-                    <input type="file" id="p-image" accept="image/*" required>
-                    <div id="image-preview" style="margin-top:10px; border:1px dashed #ccc; padding:10px; min-height:50px;">
-                        No image selected
-                    </div>
-                </div>
+            <header>
+                <h2>List New Product Asset</h2>
+                <p>Register and deploy an inventory asset to the hyperlocal marketplace</p>
+            </header>
 
-                <button type="submit" id="submit-btn" style="margin-top:20px;">List Product</button>
-            </form>
-            <div id="status-msg" style="display:none; margin-top:20px; padding:10px; color:white; border-radius:4px;"></div>
+            <div class="form-card">
+                <form id="add-product-form">
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        <div>
+                            <label style="display:block; margin-bottom:6px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; font-size:0.85rem;">Product Name</label>
+                            <input type="text" id="p-name" placeholder="e.g. Wireless Noise Canceling Headphones" required>
+                        </div>
+
+                        <div>
+                            <label style="display:block; margin-bottom:6px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; font-size:0.85rem;">Description</label>
+                            <textarea id="p-desc" rows="3" placeholder="Provide features, specifications, and details..." required></textarea>
+                        </div>
+
+                        <div class="form-grid">
+                            <div>
+                                <label style="display:block; margin-bottom:6px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; font-size:0.85rem;">Unit Price ($ USD)</label>
+                                <input type="number" id="p-price" step="0.01" min="0.01" placeholder="49.99" required>
+                            </div>
+                            <div>
+                                <label style="display:block; margin-bottom:6px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; font-size:0.85rem;">Initial Stock Units</label>
+                                <input type="number" id="p-stock" min="0" placeholder="25" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display:block; margin-bottom:6px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; font-size:0.85rem;">Category</label>
+                            <input type="text" id="p-category" placeholder="Electronics, Groceries, Clothing, Books, Home..." required list="category-suggestions">
+                            <datalist id="category-suggestions">
+                                <option value="Electronics">
+                                <option value="Groceries">
+                                <option value="Clothing & Apparel">
+                                <option value="Home & Kitchen">
+                                <option value="Books & Stationery">
+                                <option value="Health & Beauty">
+                                <option value="Sports & Fitness">
+                            </datalist>
+                        </div>
+                        
+                        <div>
+                            <label style="display:block; margin-bottom:6px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; font-size:0.85rem;">Product Media</label>
+                            <div class="upload-dropzone" onclick="document.getElementById('p-image').click()">
+                                <input type="file" id="p-image" accept="image/*" style="display:none;">
+                                <div id="image-preview">
+                                    <div style="font-size:2rem; margin-bottom:8px;">📷</div>
+                                    <div style="font-weight:600;">Click to select an image from your device</div>
+                                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">JPG, PNG, or WEBP supported</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submit-btn" class="btn-primary" style="padding:14px; margin-top:8px;">
+                            🚀 List Product Asset
+                        </button>
+                    </div>
+                </form>
+            </div>
         </main>
     </div>
 
     <script type="module">
         import { addProduct } from "../../assets/js/modules/products.js";
         import { logoutUser, checkAuthState } from "../../assets/js/modules/auth.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { showToast } from "../../assets/js/utils/helpers.js";
+
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutUser().then(() => window.location.href = "../auth/login.html");
+        });
 
         let currentUser = null;
-        const statusMsg = document.getElementById('status-msg');
 
         // Check Session
         checkAuthState((user) => {
             if (user && user.role === 'seller') {
+                if (user.status !== 'approved') {
+                    alert("Your seller account is pending approval.");
+                    window.location.href = "../auth/login.html";
+                    return;
+                }
                 currentUser = user;
             } else {
                 window.location.href = "../auth/login.html";
@@ -54,14 +155,19 @@
         });
 
         // Image Preview Logic
-        document.getElementById('p-image').addEventListener('change', function(e) {
+        const imageInput = document.getElementById('p-image');
+        const previewContainer = document.getElementById('image-preview');
+
+        imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    document.getElementById('image-preview').innerHTML =
-                        `<img src="${event.target.result}" style="max-width:150px; border-radius:8px;">`;
-                }
+                    previewContainer.innerHTML = `
+                        <img src="${event.target.result}" style="max-height:160px; border-radius:8px; object-fit:contain; border:1px solid var(--accent-primary);">
+                        <div style="margin-top:8px; font-size:0.85rem; color:var(--accent-primary);">✓ ${file.name} ready for upload</div>
+                    `;
+                };
                 reader.readAsDataURL(file);
             }
         });
@@ -72,48 +178,51 @@
             
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
-            btn.innerText = "UPLOADING TO CLOUD...";
+            btn.innerText = "UPLOADING ASSET TO MARKETPLACE...";
 
             try {
+                const price = parseFloat(document.getElementById('p-price').value);
+                const stock = parseInt(document.getElementById('p-stock').value, 10);
+
+                if (isNaN(price) || price <= 0) {
+                    throw new Error("Price must be a valid positive number.");
+                }
+                if (isNaN(stock) || stock < 0) {
+                    throw new Error("Stock units cannot be negative.");
+                }
+
                 const productData = {
-                    name: document.getElementById('p-name').value,
-                    description: document.getElementById('p-desc').value,
-                    price: parseFloat(document.getElementById('p-price').value),
-                    stock: parseInt(document.getElementById('p-stock').value),
-                    category: document.getElementById('p-category').value,
-                    // Use the OR (||) operator to provide a fallback string
-                    vendorId: currentUser.uid || "unknown_id",
-                    vendorName: currentUser.name || "Local Vendor" 
+                    name: document.getElementById('p-name').value.trim(),
+                    description: document.getElementById('p-desc').value.trim(),
+                    price: price,
+                    stock: stock,
+                    category: document.getElementById('p-category').value.trim(),
+                    vendorId: currentUser.uid,
+                    vendorName: currentUser.name || "Local Merchant" 
                 };
 
-                const imageFile = document.getElementById('p-image').files[0];
+                const imageFile = imageInput.files[0];
                 const res = await addProduct(productData, imageFile);
 
-                if(res.success) {
-                    statusMsg.style.display = "block";
-                    statusMsg.style.backgroundColor = "#4CAF50";
-                    statusMsg.innerHTML = "SUCCESS: PRODUCT_LISTED";
-                    
+                if (res.success) {
+                    showToast("Product listed successfully!", "success");
                     document.getElementById('add-product-form').reset();
-                    document.getElementById('image-preview').innerHTML = "No image selected";
-                    
-                    setTimeout(() => { window.location.href = "inventory.html"; }, 1500);
+                    previewContainer.innerHTML = `
+                        <div style="font-size:2rem; margin-bottom:8px;">📷</div>
+                        <div style="font-weight:600;">Click to select an image from your device</div>
+                    `;
+                    setTimeout(() => {
+                        window.location.href = "inventory.html";
+                    }, 1200);
                 } else {
-                    throw new Error(res.error);
+                    throw new Error(res.error || "Failed to add product");
                 }
 
             } catch (error) {
-                statusMsg.style.display = "block";
-                statusMsg.style.backgroundColor = "#f44336";
-                statusMsg.innerHTML = "ERROR: " + error.message;
+                showToast(error.message, "error");
                 btn.disabled = false;
-                btn.innerText = "List Product";
+                btn.innerText = "🚀 List Product Asset";
             }
-        });
-
-        document.getElementById('logout-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            logoutUser().then(() => window.location.href = "../auth/login.html");
         });
     </script>
 </body>

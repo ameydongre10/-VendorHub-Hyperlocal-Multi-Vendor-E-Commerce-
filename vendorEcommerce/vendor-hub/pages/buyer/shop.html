@@ -3,147 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seller Dashboard - VendorHub</title>
+    <title>Shop Hyperlocal | VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <link rel="stylesheet" href="../../assets/css/dashboard.css">
-    <style>
-        .order-item {
-            background: #fff;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .order-item select {
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        #vendor-orders-container { margin-top: 1rem; }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/components.css">
 </head>
 <body>
-    <div class="dashboard-wrapper">
-        <aside>
-            <h3>VendorHub</h3>
-            <ul>
-                <li><a href="dashboard.html" class="active">Overview</a></li>
-                <li><a href="inventory.html">My Products</a></li>
-                <li><a href="add-product.html">Add Product</a></li>
-                <li><a href="#" id="logout-btn">Logout</a></li>
-            </ul>
-        </aside>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="../../index.html" class="brand-logo">
+                VendorHub <span class="brand-badge">HYPERLOCAL</span>
+            </a>
 
-        <main>
-            <header>
-                <h2>Seller Overview</h2>
-                <div id="vendor-info"></div>
-            </header>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="shop.html" class="active">🛍️ Shop</a></li>
+                    <li><a href="all-orders.html">📦 My Orders</a></li>
+                    <li>
+                        <a href="cart.html" class="cart-link">
+                            🛒 Cart <span id="navbar-cart-count" class="cart-badge" style="display:none;">0</span>
+                        </a>
+                    </li>
+                    <li id="portal-link-container"></li>
+                    <li><button id="theme-toggle" class="theme-toggle-btn">🌓 Theme</button></li>
+                    <li id="auth-action-container"></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h4>Total Earnings</h4>
-                    <p id="stat-earnings">$0</p>
-                </div>
-                <div class="stat-card">
-                    <h4>Orders</h4>
-                    <p id="stat-orders">0</p>
-                </div>
+    <main class="dashboard-container" style="max-width: 1300px; margin-top: 1.5rem;">
+        <div id="role-banner" style="display:none; padding:12px 18px; margin-bottom:1.5rem; background:rgba(0,210,255,0.1); border:1px solid var(--accent-primary); border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
+        </div>
+
+        <section class="search-toolbar">
+            <div class="search-input-wrap">
+                <input type="text" id="shop-search-input" placeholder="Search local products, brands, or categories...">
+                <button type="button" id="btn-ai-search" class="btn-ai-search">
+                    <span>✨ AI Smart Search</span>
+                </button>
             </div>
 
-            <section id="vendor-orders">
-                <h3>Recent Orders</h3>
-                <div id="vendor-orders-container">
-                    <p>Loading orders...</p>
-                </div>
-            </section>
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="all">All Items</button>
+                <button class="category-tab" data-category="Electronics">Electronics</button>
+                <button class="category-tab" data-category="Groceries">Groceries</button>
+                <button class="category-tab" data-category="Clothing">Clothing</button>
+                <button class="category-tab" data-category="Home">Home & Kitchen</button>
+                <button class="category-tab" data-category="Books">Books</button>
+                <button class="category-tab" data-category="Sports">Sports</button>
+            </div>
 
-            <section id="alerts">
-                <h3>Low Stock Alerts</h3>
-                <ul id="stock-alerts-list"></ul>
-            </section>
-        </main>
-    </div>
+            <div id="ai-suggestions-container" class="ai-suggestions-bar" style="display: none;"></div>
+        </section>
+
+        <section>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Hyperlocal Market Inventory</h2>
+                <span id="market-status" style="font-size:0.85rem; color:var(--text-muted);">Live Network Active</span>
+            </div>
+
+            <div id="shop-product-grid" class="product-grid">
+                <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--accent-primary);">
+                    Synchronizing with Local Market Network...
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script type="module">
-    import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
-    import { getVendorStats, getLowStockProducts } from "../../assets/js/modules/vendor.js";
-    import { getVendorOrders, updateOrderStatus } from "../../assets/js/modules/orders.js";
+        import { initShop } from "../../assets/js/buyer-app.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
 
-    checkAuthState(async (user) => {
-        if (user && user.role === 'seller') {
-            if (user.status !== 'approved') {
-                alert("Your account is pending approval.");
-                window.location.href = "../auth/login.html";
-                return;
+        initTheme();
+        initParallax();
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // Header Auth State
+        const authContainer = document.getElementById('auth-action-container');
+        const portalContainer = document.getElementById('portal-link-container');
+        const roleBanner = document.getElementById('role-banner');
+
+        checkAuthState((user) => {
+            if (user) {
+                authContainer.innerHTML = `
+                    <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${user.name || 'User'}</span>
+                    <button id="logout-btn" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:0.85rem;">Logout</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    logoutUser().then(() => window.location.reload());
+                });
+
+                if (user.role === 'seller') {
+                    portalContainer.innerHTML = `<a href="../seller/dashboard.html" style="color:var(--accent-primary); font-weight:700;">Merchant Terminal</a>`;
+                    roleBanner.style.display = 'flex';
+                    roleBanner.innerHTML = `
+                        <span>Logged in as <strong>Merchant</strong> (${user.name || 'Seller'}). Manage inventory and customer orders in your dashboard.</span>
+                        <a href="../seller/dashboard.html" class="btn-primary" style="padding:6px 14px; font-size:0.75rem;">Open Seller Portal →</a>
+                    `;
+                } else if (user.role === 'admin') {
+                    portalContainer.innerHTML = `<a href="../admin/dashboard.html" style="color:var(--accent-primary); font-weight:700;">Admin Panel</a>`;
+                    roleBanner.style.display = 'flex';
+                    roleBanner.innerHTML = `
+                        <span>Logged in as <strong>Platform Administrator</strong>.</span>
+                        <a href="../admin/dashboard.html" class="btn-primary" style="padding:6px 14px; font-size:0.75rem;">Admin Panel →</a>
+                    `;
+                }
+            } else {
+                authContainer.innerHTML = `
+                    <a href="../auth/login.html" class="btn-primary" style="padding:6px 14px; font-size:0.8rem;">Login</a>
+                `;
             }
+        });
 
-            try {
-                // 1. Load Stats
-                const stats = await getVendorStats(user.uid);
-                document.getElementById('stat-earnings').innerText = `$${(stats.totalEarnings - stats.commissionDeducted).toFixed(2)}`;
-                document.getElementById('stat-orders').innerText = stats.orderCount;
-
-                // 2. Load Low Stock Alerts
-                const lowStock = await getLowStockProducts(user.uid);
-                const list = document.getElementById('stock-alerts-list');
-                list.innerHTML = lowStock.length === 0 
-                    ? "<li>All products are well stocked!</li>" 
-                    : lowStock.map(p => `<li style="color:red">${p.name} is low on stock (${p.stock} left)</li>`).join('');
-
-                // 3. Load Vendor Orders
-                renderVendorOrders(user.uid);
-
-            } catch (error) {
-                console.error("Error loading dashboard data:", error);
-            }
-        } else {
-            window.location.href = "../auth/login.html";
-        }
-    });
-
-    async function renderVendorOrders(vendorId) {
-        const orders = await getVendorOrders(vendorId);
-        const container = document.getElementById('vendor-orders-container');
-        
-        if (orders.length === 0) {
-            container.innerHTML = "<p>No orders found for your products.</p>";
-            return;
-        }
-
-        container.innerHTML = orders.map(order => `
-            <div class="order-item">
-                <div>
-                    <strong>Order #${order.id.slice(-6)}</strong><br>
-                    <small>Total: $${order.totalAmount.toFixed(2)}</small>
-                </div>
-                <select onchange="changeStatus('${order.id}', this.value)">
-                    <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
-                    <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                    <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                    <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                </select>
-            </div>
-        `).join('');
-    }
-
-    // Global function for the select dropdown
-    window.changeStatus = async (id, status) => {
-        const res = await updateOrderStatus(id, status);
-        if (res.success) {
-            alert("Order status updated to: " + status);
-        } else {
-            alert("Error: " + res.error);
-        }
-    };
-
-    document.getElementById('logout-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        logoutUser().then(() => window.location.href = "../auth/login.html");
-    });
+        // Initialize Shop
+        initShop().then(() => {
+            initParallax();
+        });
     </script>
 </body>
 </html>

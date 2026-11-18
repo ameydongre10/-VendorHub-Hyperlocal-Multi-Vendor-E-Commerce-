@@ -4,39 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Order - VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    <style>
+        .tracker-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            margin-top: 1.5rem;
+        }
+
+        .order-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            padding: 1.2rem;
+            background: rgba(0, 210, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .meta-col span {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .meta-col strong {
+            font-size: 1.05rem;
+            color: var(--text-primary);
+        }
+
+        .items-table {
+            width: 100%;
+            margin-top: 1.5rem;
+            border-collapse: collapse;
+        }
+
+        .items-table th, .items-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            text-align: left;
+        }
+
+        .items-table th {
+            color: var(--accent-primary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <h2>Order Tracking</h2>
-        <div id="order-details" class="product-card">
-            <p>Loading order details...</p>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="../../index.html" class="brand-logo">
+                VendorHub <span class="brand-badge">HYPERLOCAL</span>
+            </a>
+
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="shop.html">🛍️ Shop</a></li>
+                    <li><a href="all-orders.html">📦 My Orders</a></li>
+                    <li>
+                        <a href="cart.html" class="cart-link">
+                            🛒 Cart <span id="navbar-cart-count" class="cart-badge" style="display:none;">0</span>
+                        </a>
+                    </li>
+                    <li><button id="theme-toggle" class="theme-toggle-btn">🌓 Theme</button></li>
+                    <li id="auth-action-container"></li>
+                </ul>
+            </nav>
         </div>
-        <div class="status-timeline">
-            <p>Current Status: <strong id="status-text">-</strong></p>
+    </header>
+
+    <main class="dashboard-container" style="max-width: 950px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h2>Live Order Synchronization</h2>
+                <p style="color:var(--text-muted)">Real-time telemetry and fulfillment tracking</p>
+            </div>
+            <a href="all-orders.html" style="font-weight:600;">View All Orders →</a>
         </div>
-    </div>
+
+        <div style="display:flex; gap:10px; margin-top:1.5rem;">
+            <input type="text" id="order-lookup-input" placeholder="Enter Order ID to track (e.g. 7XqW2...)" style="flex-grow:1;">
+            <button id="btn-lookup" class="btn-primary" style="padding:0 24px;">Track</button>
+        </div>
+
+        <div id="tracker-display" style="display:none;" class="tracker-card">
+            <div class="order-meta-grid">
+                <div class="meta-col">
+                    <span>Order Reference</span>
+                    <strong id="track-id">-</strong>
+                </div>
+                <div class="meta-col">
+                    <span>Date Created</span>
+                    <strong id="track-date">-</strong>
+                </div>
+                <div class="meta-col">
+                    <span>Total Investment</span>
+                    <strong id="track-total" style="color:var(--accent-primary); font-family:'Orbitron',sans-serif;">$0.00</strong>
+                </div>
+                <div class="meta-col">
+                    <span>Fulfillment Status</span>
+                    <strong id="track-status-pill">-</strong>
+                </div>
+            </div>
+
+            <div id="stepper-wrap" class="order-stepper">
+                <div id="stepper-bar" class="stepper-progress" style="width: 0%;"></div>
+                
+                <div class="step-node" id="step-placed">
+                    <div class="step-circle">1</div>
+                    <span class="step-label">Placed</span>
+                </div>
+                <div class="step-node" id="step-shipped">
+                    <div class="step-circle">2</div>
+                    <span class="step-label">Dispatched</span>
+                </div>
+                <div class="step-node" id="step-delivered">
+                    <div class="step-circle">3</div>
+                    <span class="step-label">Delivered</span>
+                </div>
+            </div>
+
+            <h3 style="margin-top:2.5rem; font-size:1.1rem;">Package Inventory Details</h3>
+            <div id="order-items-list"></div>
+        </div>
+
+        <div id="tracker-placeholder" class="empty-state-box" style="margin-top:2rem;">
+            <div class="empty-state-icon">📡</div>
+            <h3>Enter an Order ID to Begin Tracking</h3>
+            <p>Or browse your completed purchases in order history.</p>
+            <a href="all-orders.html" class="empty-state-btn">View My Orders</a>
+        </div>
+    </main>
 
     <script type="module">
         import { db } from "../../assets/js/config/firebase-config.js";
         import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
+        import { getCartCount } from "../../assets/js/modules/cart.js";
+        import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
+        import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { showToast, formatCurrency, formatDate, escapeHtml } from "../../assets/js/utils/helpers.js";
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('orderId');
+        initTheme();
+        initParallax();
 
-        if (orderId) {
-            onSnapshot(doc(db, "orders", orderId), (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    document.getElementById('status-text').innerText = data.status;
-                    document.getElementById('order-details').innerHTML = `
-                        <p>Order ID: ${doc.id}</p>
-                        <p>Total: $${data.totalAmount}</p>
-                        <p>Date: ${new Date(data.createdAt).toLocaleDateString()}</p>
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+        // Header Auth & Cart Setup
+        const authContainer = document.getElementById('auth-action-container');
+        checkAuthState((user) => {
+            if (user) {
+                authContainer.innerHTML = `
+                    <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${user.name || 'User'}</span>
+                    <button id="logout-btn" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:0.85rem;">Logout</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    logoutUser().then(() => window.location.reload());
+                });
+            } else {
+                authContainer.innerHTML = `<a href="../auth/login.html" class="btn-primary" style="padding:6px 14px; font-size:0.8rem;">Login</a>`;
+            }
+        });
+
+        const badge = document.getElementById('navbar-cart-count');
+        const count = getCartCount();
+        if (badge) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+
+        let unsubscribe = null;
+
+        function trackOrder(orderId) {
+            if (!orderId) return;
+
+            if (unsubscribe) unsubscribe();
+
+            const display = document.getElementById('tracker-display');
+            const placeholder = document.getElementById('tracker-placeholder');
+
+            unsubscribe = onSnapshot(doc(db, "orders", orderId), (docSnap) => {
+                if (!docSnap.exists()) {
+                    showToast("Order ID not found in system.", "error");
+                    display.style.display = 'none';
+                    placeholder.style.display = 'block';
+                    placeholder.innerHTML = `
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Order Record Not Found</h3>
+                        <p>No order matching ID: <strong>${escapeHtml(orderId)}</strong> exists.</p>
+                        <a href="all-orders.html" class="empty-state-btn">View My Orders</a>
                     `;
+                    return;
                 }
+
+                const data = docSnap.data();
+                display.style.display = 'block';
+                placeholder.style.display = 'none';
+
+                document.getElementById('track-id').innerText = `#${docSnap.id.slice(-8)}`;
+                document.getElementById('track-date').innerText = formatDate(data.createdAt);
+                document.getElementById('track-total').innerText = formatCurrency(data.totalAmount);
+                
+                const statusPill = document.getElementById('track-status-pill');
+                const status = data.status || 'Placed';
+                statusPill.innerHTML = `<span class="status-tag status-${status.toLowerCase()}">${status}</span>`;
+
+                // Update Stepper
+                updateStepperUI(status);
+
+                // Render Ordered Items
+                const itemsList = document.getElementById('order-items-list');
+                const items = data.items || [];
+
+                if (items.length > 0) {
+                    itemsList.innerHTML = `
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Item Asset</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => {
+                                    const itemName = typeof item === 'object' ? (item.name || item.id) : item;
+                                    const itemQty = typeof item === 'object' ? (item.quantity || 1) : 1;
+                                    const itemPrice = typeof item === 'object' && item.price ? formatCurrency(item.price) : '-';
+
+                                    return `
+                                        <tr>
+                                            <td><strong>${escapeHtml(itemName)}</strong></td>
+                                            <td>${itemQty}</td>
+                                            <td style="color:var(--accent-primary); font-family:'Orbitron',sans-serif;">${itemPrice}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                } else {
+                    itemsList.innerHTML = `<p style="color:var(--text-muted); margin-top:10px;">Item details archived.</p>`;
+                }
+            }, (error) => {
+                console.error("Tracking listener error:", error);
+                showToast("Connection to tracking stream failed: " + error.message, "error");
             });
         }
+
+        function updateStepperUI(status) {
+            const stepPlaced = document.getElementById('step-placed');
+            const stepShipped = document.getElementById('step-shipped');
+            const stepDelivered = document.getElementById('step-delivered');
+            const progressBar = document.getElementById('stepper-bar');
+
+            // Reset
+            [stepPlaced, stepShipped, stepDelivered].forEach(node => {
+                node.className = 'step-node';
+            });
+
+            if (status === 'Cancelled') {
+                progressBar.style.width = '0%';
+                stepPlaced.classList.add('completed');
+                return;
+            }
+
+            if (status === 'Placed') {
+                progressBar.style.width = '0%';
+                stepPlaced.classList.add('active');
+            } else if (status === 'Shipped') {
+                progressBar.style.width = '50%';
+                stepPlaced.classList.add('completed');
+                stepShipped.classList.add('active');
+            } else if (status === 'Delivered') {
+                progressBar.style.width = '100%';
+                stepPlaced.classList.add('completed');
+                stepShipped.classList.add('completed');
+                stepDelivered.classList.add('completed');
+            }
+        }
+
+        // Check URL Query Param
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryOrderId = urlParams.get('orderId');
+        if (queryOrderId) {
+            document.getElementById('order-lookup-input').value = queryOrderId;
+            trackOrder(queryOrderId);
+        }
+
+        document.getElementById('btn-lookup').addEventListener('click', () => {
+            const val = document.getElementById('order-lookup-input').value.trim();
+            if (val) {
+                trackOrder(val);
+            }
+        });
     </script>
 </body>
 </html>

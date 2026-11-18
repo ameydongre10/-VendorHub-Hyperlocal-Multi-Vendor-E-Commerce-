@@ -1,85 +1,141 @@
-import { getPendingVendors, updateVendorStatus } from "./modules/admin.js";
+import { getPendingVendors, updateVendorStatus, getPlatformAnalytics } from "./modules/admin.js";
+import { checkAuthState, logoutUser } from "./modules/auth.js";
+import { initTheme, toggleTheme } from "./utils/theme-handler.js";
+import { showToast, formatDate } from "./utils/helpers.js";
 
-async function loadRequests() {
+// Check Admin Authentication
+checkAuthState((user) => {
+    if (!user || user.role !== 'admin') {
+        alert("ACCESS DENIED: Administrator clearance required.");
+        window.location.href = "../auth/login.html";
+        return;
+    }
+});
+
+// Initialize Theme
+initTheme();
+
+// Wire up global theme toggle if present
+const themeToggle = document.getElementById('theme-toggle');
+if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+}
+
+// Wire up global logout button if present
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        logoutUser().then(() => {
+            window.location.href = "../auth/login.html";
+        });
+    });
+}
+
+/**
+ * Loads pending vendor requests on the vendor-requests page.
+ */
+export async function loadRequests() {
     const container = document.getElementById('vendor-list');
     const noRequestsMsg = document.getElementById('no-requests');
     const table = document.getElementById('requests-table');
     
-    // 1. Fetch vendors with status "pending" and role "seller"
-    const requests = await getPendingVendors();
+    if (!container) return; // Not on the vendor requests page
 
-    if (requests.length === 0) {
-        table.style.display = "none";
-        noRequestsMsg.style.display = "block";
-        return;
+    try {
+        const requests = await getPendingVendors();
+
+        if (requests.length === 0) {
+            if (table) table.style.display = "none";
+            if (noRequestsMsg) noRequestsMsg.style.display = "block";
+            return;
+        }
+
+        if (table) table.style.display = "table";
+        if (noRequestsMsg) noRequestsMsg.style.display = "none";
+
+        container.innerHTML = "";
+        requests.forEach(vendor => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${vendor.name || 'Unnamed Vendor'}</strong></td>
+                <td>${vendor.email || 'N/A'}</td>
+                <td>${formatDate(vendor.createdAt)}</td>
+                <td>
+                    <button class="approve-btn" data-id="${vendor.id}">Approve</button>
+                    <button class="reject-btn" data-id="${vendor.id}">Reject</button>
+                </td>
+            `;
+            container.appendChild(row);
+        });
+
+        // Attach Event Listeners to buttons
+        container.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleStatusUpdate(btn.dataset.id, 'approved'));
+        });
+
+        container.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleStatusUpdate(btn.dataset.id, 'rejected'));
+        });
+    } catch (err) {
+        console.error("Error loading vendor requests:", err);
+        showToast("Failed to load vendor requests", "error");
     }
-
-    container.innerHTML = "";
-    requests.forEach(vendor => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${vendor.name}</td>
-            <td>${vendor.email}</td>
-            <td>${new Date(vendor.createdAt).toLocaleDateString()}</td>
-            <td>
-                <button class="approve-btn" data-id="${vendor.id}">Approve</button>
-                <button class="reject-btn" data-id="${vendor.id}">Reject</button>
-            </td>
-        `;
-        container.appendChild(row);
-    });
-
-    // Attach Event Listeners to buttons
-    document.querySelectorAll('.approve-btn').forEach(btn => {
-        btn.addEventListener('click', () => handleStatusUpdate(btn.dataset.id, 'approved'));
-    });
-
-    document.querySelectorAll('.reject-btn').forEach(btn => {
-        btn.addEventListener('click', () => handleStatusUpdate(btn.dataset.id, 'rejected'));
-    });
 }
 
 async function handleStatusUpdate(vendorId, newStatus) {
-    if (confirm(`Are you sure you want to set this vendor to ${newStatus}?`)) {
+    const action = newStatus === 'approved' ? 'approve' : 'reject';
+    if (confirm(`Are you sure you want to ${action} this vendor application?`)) {
         try {
-            await updateVendorStatus(vendorId, newStatus);
-            alert(`Vendor ${newStatus} successfully!`);
-            loadRequests(); // Refresh the list
+            const res = await updateVendorStatus(vendorId, newStatus);
+            if (res.success) {
+                showToast(`Vendor ${newStatus} successfully!`, "success");
+                loadRequests(); // Refresh the list
+            } else {
+                throw new Error(res.error);
+            }
         } catch (error) {
-            alert("Error updating status: " + error.message);
+            showToast("Error updating status: " + error.message, "error");
         }
     }
 }
 
-
-
-import { getPlatformAnalytics } from "./modules/admin.js";
-
-async function loadAnalytics() {
-    // Check if we are on the analytics page
+/**
+ * Loads platform analytics on the analytics page.
+ */
+export async function loadAnalytics() {
     const salesEl = document.getElementById('total-sales');
-    if (!salesEl) return; 
+    if (!salesEl) return; // Not on the analytics page
 
     try {
-        // 1. Fetch data using your existing module
         const stats = await getPlatformAnalytics();
 
-        // 2. Calculate platform commission (assuming 10% fee)
-        const revenue = stats.totalSales * 0.10;
-
-        // 3. Update the UI
         salesEl.innerText = stats.totalSales.toFixed(2);
-        document.getElementById('total-orders').innerText = stats.totalOrders;
-        document.getElementById('platform-revenue').innerText = revenue.toFixed(2);
+        
+        const ordersEl = document.getElementById('total-orders');
+        if (ordersEl) ordersEl.innerText = stats.totalOrders;
+
+        const revEl = document.getElementById('platform-revenue');
+        if (revEl) revEl.innerText = stats.platformRevenue.toFixed(2);
+
+        const vendorsCountEl = document.getElementById('total-vendors');
+        if (vendorsCountEl) vendorsCountEl.innerText = stats.vendorCount;
+
+        const buyersCountEl = document.getElementById('total-buyers');
+        if (buyersCountEl) buyersCountEl.innerText = stats.buyerCount;
         
     } catch (error) {
         console.error("Error loading analytics:", error);
+        showToast("Error loading analytics data", "error");
     }
 }
 
-// Ensure the function runs when the page loads
-document.addEventListener('DOMContentLoaded', loadAnalytics);
-
-
-// Initial Load
-loadRequests();
+// Ensure functions run if corresponding page elements exist
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('vendor-list')) {
+        loadRequests();
+    }
+    if (document.getElementById('total-sales')) {
+        loadAnalytics();
+    }
+});

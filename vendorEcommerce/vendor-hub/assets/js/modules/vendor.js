@@ -19,34 +19,39 @@ export const getVendorStats = async (vendorId) => {
         
         snapshot.forEach(doc => {
             const data = doc.data();
-            totalEarnings += data.totalAmount; 
+            const amt = typeof data.totalAmount === 'number' ? data.totalAmount : parseFloat(data.totalAmount) || 0;
+            totalEarnings += amt; 
             orderCount++;
         });
 
         return {
             totalEarnings,
             orderCount,
-            commissionDeducted: totalEarnings * 0.10
+            commissionDeducted: totalEarnings * 0.10,
+            netEarnings: totalEarnings * 0.90
         };
     } catch (error) {
         console.error("Error fetching vendor stats:", error);
-        return { totalEarnings: 0, orderCount: 0, commissionDeducted: 0 };
+        return { totalEarnings: 0, orderCount: 0, commissionDeducted: 0, netEarnings: 0 };
     }
 };
 
 /**
  * Fetches products that are running low on stock for a specific vendor.
- * This is the function that was missing the export!
+ * Filters client-side to prevent Firestore composite index errors.
  */
 export const getLowStockProducts = async (vendorId, threshold = 5) => {
     try {
         const q = query(
             collection(db, "products"), 
-            where("vendorId", "==", vendorId), 
-            where("stock", "<=", threshold)
+            where("vendorId", "==", vendorId)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return products.filter(p => {
+            const stock = typeof p.stock === 'number' ? p.stock : parseInt(p.stock, 10);
+            return !isNaN(stock) && stock <= threshold;
+        });
     } catch (error) {
         console.error("Error fetching low stock alerts:", error);
         return [];
