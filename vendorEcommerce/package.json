@@ -1,0 +1,12 @@
+{
+  "name": "vendorhub-vendorecommerce",
+  "version": "1.0.0",
+  "description": "VendorHub – Hyperlocal Multi-Vendor E-Commerce Platform",
+  "scripts": {
+    "build": "node vercel-build.js",
+    "vercel-build": "node vercel-build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

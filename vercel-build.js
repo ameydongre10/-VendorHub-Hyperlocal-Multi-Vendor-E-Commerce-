@@ -1,21 +1,34 @@
 /**
  * vercel-build.js
  *
- * Pre-deployment build script for Vercel.
- * - Copies all static files from vendorEcommerce/vendor-hub/ to dist/
- * - Generates dist/assets/js/config/__env.js from Vercel environment variables
- *
- * Run automatically by Vercel via the "buildCommand" in vercel.json.
- * Can also be run locally:  node vercel-build.js
+ * Universal pre-deployment build script for Vercel & local environments.
+ * Supports running from repository root OR from subdirectories.
  */
 
 const fs   = require('fs');
 const path = require('path');
 
-const SOURCE_DIR = path.join(__dirname, 'vendorEcommerce', 'vendor-hub');
-const DIST_DIR   = path.join(__dirname, 'dist');
+// Locate vendor-hub directory dynamically
+function findSourceDir() {
+  const candidates = [
+    path.join(__dirname, 'vendorEcommerce', 'vendor-hub'),
+    path.join(__dirname, 'vendor-hub'),
+    path.join(__dirname, '..', 'vendorEcommerce', 'vendor-hub'),
+    path.join(process.cwd(), 'vendorEcommerce', 'vendor-hub'),
+    path.join(process.cwd(), 'vendor-hub')
+  ];
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+  for (const dir of candidates) {
+    if (fs.existsSync(dir) && fs.existsSync(path.join(dir, 'index.html'))) {
+      return dir;
+    }
+  }
+  throw new Error('Could not locate vendor-hub source directory.');
+}
+
+const SOURCE_DIR = findSourceDir();
+// Target dist directory in current working directory
+const DIST_DIR = path.join(process.cwd(), 'dist');
 
 function copyDir(src, dest) {
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
@@ -30,17 +43,12 @@ function copyDir(src, dest) {
   }
 }
 
-// ─── 1. Copy static files ────────────────────────────────────────────────────
-
-console.log('📁  Copying static files to dist/ …');
+console.log(`📁  Copying static assets from ${SOURCE_DIR} to ${DIST_DIR} …`);
 if (fs.existsSync(DIST_DIR)) fs.rmSync(DIST_DIR, { recursive: true });
 copyDir(SOURCE_DIR, DIST_DIR);
-console.log('    ✓ Files copied');
+console.log('    ✓ Static files copied');
 
-// ─── 2. Generate __env.js ────────────────────────────────────────────────────
-
-// Build the config object and serialize it with JSON.stringify so that all
-// special characters (quotes, newlines, backslashes, etc.) are safely escaped.
+// Generate __env.js from environment variables
 const envConfig = {
   VITE_FIREBASE_API_KEY:             process.env.VITE_FIREBASE_API_KEY             || '',
   VITE_FIREBASE_AUTH_DOMAIN:         process.env.VITE_FIREBASE_AUTH_DOMAIN         || '',

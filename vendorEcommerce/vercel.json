@@ -1,11 +1,11 @@
 {
-  "version": 2,
-  "framework": null,
-  "buildCommand": "node ../vercel-build.js",
-  "outputDirectory": "../dist",
+  "buildCommand": "node vercel-build.js",
+  "outputDirectory": "dist",
   "cleanUrls": true,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    {
+      "source": "/((?!assets/|pages/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

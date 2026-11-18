@@ -1,6 +1,25 @@
 # VendorHub – Hyperlocal Multi-Vendor E-Commerce Platform
 
+[![Tests](https://img.shields.io/badge/tests-147%20passed-success)](test-project.js)
+[![Vercel Deployment](https://img.shields.io/badge/deployed%20on-Vercel-black?logo=vercel)](https://vercel.com)
+[![Firebase](https://img.shields.io/badge/database-Firestore%20Offline%20Cache-orange?logo=firebase)](https://firebase.google.com)
+[![Gemini AI](https://img.shields.io/badge/AI-Google%20Gemini%201.5%20Flash-blue?logo=google)](https://deepmind.google/technologies/gemini/)
+
 VendorHub is an ultra-modern, decentralized-style hyperlocal multi-vendor marketplace designed to bridge the gap between local micro-businesses and neighborhood consumers. The platform provides a robust three-tier architecture (Buyer, Seller, Admin) handling the entire retail lifecycle: AI-assisted product discovery, live cart and inventory synchronization, status-tracked fulfillment, and platform monetization analytics.
+
+---
+
+## 🌐 Live Hosting & Deployment
+
+* **Production Hosting Surface**: [Vercel](https://vercel.com)
+* **Live Deployment URL**: [https://vendor-hub-hyperlocal-multi-vendor-e-commerce-c47qmj4z5.vercel.app](https://vendor-hub-hyperlocal-multi-vendor-e-commerce-c47qmj4z5.vercel.app)
+* **Repository**: [https://github.com/ameydongre10/-VendorHub-Hyperlocal-Multi-Vendor-E-Commerce-](https://github.com/ameydongre10/-VendorHub-Hyperlocal-Multi-Vendor-E-Commerce-)
+
+### ⚙️ Vercel Dual-Root Compatibility
+The project includes universal build scripts and configurations so that Vercel deploys cleanly regardless of dashboard configuration:
+1. **Root Directory: `.`** (Repository Root): Builds via root `vercel.json` and `vercel-build.js` outputting to `dist/`.
+2. **Root Directory: `vendorEcommerce`**: Builds via `vendorEcommerce/vercel.json` and `vendorEcommerce/vercel-build.js` outputting to `vendorEcommerce/dist/`.
+3. **Clean URLs & Rewrites**: Enabled for aesthetic URLs without `.html` extensions.
 
 ---
 
@@ -39,6 +58,9 @@ VendorHub is an ultra-modern, decentralized-style hyperlocal multi-vendor market
 ```
 ├── dist/                              # Vercel production build output
 ├── vendorEcommerce/
+│   ├── package.json                   # Subfolder deployment config
+│   ├── vercel.json                    # Subfolder Vercel routing
+│   ├── vercel-build.js                # Subfolder build script
 │   └── vendor-hub/
 │       ├── index.html                 # Main Landing Page
 │       ├── assets/
@@ -82,34 +104,41 @@ VendorHub is an ultra-modern, decentralized-style hyperlocal multi-vendor market
 
 ---
 
-## 🚀 Getting Started
+## 🧪 Verification & Test Suite
 
-### 1. Run Verification Suite
-Verify all JavaScript syntax, module imports, and build scripts:
+Run the automated verification suite to validate all 147 assertions across JavaScript syntax, module import graphs, and build pipelines:
 ```bash
 npm test
 # Or: node test-project.js
 ```
 
-### 2. Local Development
-To serve the application locally:
-```bash
-# Build the production bundle
-npm run build
+---
 
-# Serve the dist/ directory or open directly in your browser
-npx serve dist
+## 🚀 Local Development & Preview
+
+### 1. Build Production Assets
+```bash
+npm run build
 ```
 
-### 3. Deploy to Vercel
-1. Push your repository to GitHub.
-2. Import project into Vercel (Root Directory: `.`).
-3. Set optional environment variables in Vercel Project Settings:
-   - `VITE_FIREBASE_API_KEY`
-   - `VITE_FIREBASE_AUTH_DOMAIN`
-   - `VITE_FIREBASE_PROJECT_ID`
-   - `VITE_FIREBASE_STORAGE_BUCKET`
-   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
-   - `VITE_FIREBASE_APP_ID`
-   - `VITE_GEMINI_API_KEY`
-4. Deploy!
+### 2. Run Local Server
+```bash
+npx serve dist
+# Or open index.html directly in any browser
+```
+
+---
+
+## ☁️ Environment Variables Configuration (Vercel)
+
+Configure the following variables in **Vercel Project Settings → Environment Variables**:
+
+| Variable | Description | Default Fallback |
+|---|---|---|
+| `VITE_FIREBASE_API_KEY` | Firebase Web API Key | Configured project key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | `multivendorecommerce-62970.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Firestore Project ID | `multivendorecommerce-62970` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Cloud Storage Bucket | `multivendorecommerce-62970.firebasestorage.app` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | FCM Sender ID | `653502733308` |
+| `VITE_FIREBASE_APP_ID` | Web App ID | `1:653502733308:web:...` |
+| `VITE_GEMINI_API_KEY` | Google Gemini API Key | Built-in offline semantic fallback |
