@@ -1,0 +1,96 @@
+PROPRIETARY AND CONFIDENTIAL SOURCE CODE LICENSE
+================================================================================
+VENDORHUB™ HYPERLOCAL MULTI-VENDOR PLATFORM
+Copyright (c) 2026 Amey Dongre (ameydongre10). All Rights Reserved.
+================================================================================
+
+NOTICE TO ALL PERSONS, ENTITIES, RESEARCHERS, STUDENTS, AND AUTOMATED SYSTEMS:
+READ THIS DOCUMENT CAREFULLY. THIS IS A STRICT, PROPRIETARY, COPYRIGHT-PROTECTED 
+SOFTWARE LICENSE. ACCESS TO THIS REPOSITORY OR SOURCE CODE DOES NOT CONFER ANY 
+RIGHTS OF OWNERSHIP, REDISTRIBUTION, COPYING, OR COMMERCIAL EXPLOITATION.
+
+1. PROPRIETARY OWNERSHIP & INTELLECTUAL PROPERTY
+--------------------------------------------------------------------------------
+The software, documentation, architecture designs, user interface code, CSS 
+systems, database schemas, API integrations, and all associated media comprising 
+VendorHub (the "Software") are the exclusive intellectual property and proprietary 
+assets of Amey Dongre ("Author" / "Licensor"). 
+
+All title, copyright, trademarks, trade secrets, and other intellectual property 
+rights in and to the Software remain exclusively with the Author.
+
+2. STRICT PROHIBITION AGAINST COPYING & REPRODUCTION
+--------------------------------------------------------------------------------
+Except as expressly permitted by prior written authorization executed by the 
+Author, YOU ARE STRICTLY FORBIDDEN FROM:
+
+  a. Copying, duplicating, cloning, mirroring, or reproducing the Software, 
+     in whole or in part, in any format, medium, or repository.
+  b. Distributing, publishing, sublicensing, selling, leasing, renting, or 
+     transferring copies of the Software to any third party.
+  c. Removing, altering, obscuring, or tampering with any copyright notice, 
+     proprietary watermark, author attribution, or license text contained 
+     in any file within this repository.
+  d. Creating derivative works, modifying, adapting, translating, or porting 
+     the Software into any other programming language, framework, or platform.
+  e. Submitting, publishing, or presenting any part of this Software as an 
+     academic, educational, or commercial submission under your own name or any 
+     name other than Amey Dongre. Plagiarism will be vigorously pursued.
+
+3. PROHIBITION OF REVERSE ENGINEERING & DECOMPILATION
+--------------------------------------------------------------------------------
+You shall not disassemble, decompile, decrypt, reverse engineer, or attempt to 
+derive the source code or underlying architecture of any compiled, minified, 
+or bundled components of the Software.
+
+4. PROHIBITION OF AI MODEL INGESTION & TRAINING (ANTI-SCRAPING)
+--------------------------------------------------------------------------------
+This Software, its source code, architecture specifications, algorithms, and 
+documentation are strictly excluded from:
+  a. Training, fine-tuning, evaluating, or benchmarking any machine learning model, 
+     artificial intelligence system, or large language model (LLM).
+  b. Automated code scraping, harvesting, or ingestion by commercial search or 
+     code indexing datasets without express, notarized written authorization 
+     from Amey Dongre.
+
+5. PERMITTED USE (READ-ONLY EVALUATION)
+--------------------------------------------------------------------------------
+The Author grants a limited, revocable, non-exclusive, non-transferable license 
+solely for personal, read-only inspection and evaluation directly on GitHub. 
+Any execution outside of approved demonstration environments or any re-hosting 
+on other public domains without the Author's explicit permission is a direct 
+violation of this License.
+
+6. DIGITAL SIGNATURES, TRACKING & WATERMARKS
+--------------------------------------------------------------------------------
+Portions of this Software contain embedded structural signatures, algorithmic 
+fingerprints, and authorship watermarks. Any attempt to replicate or scrape 
+the codebase into another project or repository will be detected automatically.
+
+7. ENFORCEMENT & STATUTORY REMEDIES
+--------------------------------------------------------------------------------
+Any violation of this License constitutes willful copyright infringement and 
+intellectual property theft under international copyright treaties (including 
+the Berne Convention and WIPO Copyright Treaty) and domestic intellectual 
+property laws (including the Digital Millennium Copyright Act, 17 U.S.C. § 512, 
+and the Indian Copyright Act, 1957).
+
+The Licensor reserves the right to:
+  a. Issue immediate Digital Millennium Copyright Act (DMCA) takedown notices 
+     to GitHub, web hosts, domain registrars, and cloud service providers.
+  b. Institute legal proceedings seeking preliminary and permanent injunctive 
+     relief, statutory damages (up to the maximum allowed by law per violation), 
+     punitive damages, and recovery of legal fees and court costs.
+  c. Notify academic institutions, employers, or regulatory bodies of any 
+     verified plagiarism or intellectual property theft.
+
+8. DISCLAIMER OF WARRANTY
+--------------------------------------------------------------------------------
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER "AS IS", WITHOUT WARRANTY 
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+================================================================================
+FOR INQUIRIES, COMMERCIAL LICENSING, OR PERMISSIONS, CONTACT:
+Amey Dongre — GitHub: https://github.com/ameydongre10
+================================================================================

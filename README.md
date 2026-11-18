@@ -1,160 +1,265 @@
-# VendorHub – Hyperlocal Multi-Vendor E-Commerce Platform
+# VendorHub™ – Hyperlocal Multi-Vendor E-Commerce Platform
 
-[![Tests](https://img.shields.io/badge/tests-147%20passed-success)](test-project.js)
+[![License: Proprietary](https://img.shields.io/badge/License-Strict%20Proprietary%20%2F%20All%20Rights%20Reserved-red.svg)](LICENSE)
+[![Copyright](https://img.shields.io/badge/Copyright-(c)%202026%20Amey%20Dongre-blue.svg)](LICENSE)
+[![Security Protection](https://img.shields.io/badge/Anti--Plagiarism-Protected%20%26%20Monitored-darkgreen.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-292%20passed-success)](test-project.js)
 [![Vercel Deployment](https://img.shields.io/badge/deployed%20on-Vercel-black?logo=vercel)](https://vercel.com)
 [![Firebase](https://img.shields.io/badge/database-Firestore%20Offline%20Cache-orange?logo=firebase)](https://firebase.google.com)
 [![Gemini AI](https://img.shields.io/badge/AI-Google%20Gemini%201.5%20Flash-blue?logo=google)](https://deepmind.google/technologies/gemini/)
 
-VendorHub is an ultra-modern, decentralized-style hyperlocal multi-vendor marketplace designed to bridge the gap between local micro-businesses and neighborhood consumers. The platform provides a robust three-tier architecture (Buyer, Seller, Admin) handling the entire retail lifecycle: AI-assisted product discovery, live cart and inventory synchronization, status-tracked fulfillment, and platform monetization analytics.
+> **VendorHub** is an enterprise-grade, decentralized-style hyperlocal multi-vendor marketplace platform designed to bridge the economic gap between neighborhood micro-merchants and modern digital consumers. Built with an ultra-responsive Cyber-Glass architecture, hardware-accelerated 3D parallax physics, Google Gemini 1.5 Flash AI integration, and multi-tab persistent Firestore caching.
 
 ---
 
 ## 🌐 Live Hosting & Deployment
 
 * **Production Hosting Surface**: [Vercel](https://vercel.com)
-* **Live Deployment URL**: [https://vendor-hub-hyperlocal-multi-vendor-e-commerce-c47qmj4z5.vercel.app](https://vendor-hub-hyperlocal-multi-vendor-e-commerce-c47qmj4z5.vercel.app)
-* **Repository**: [https://github.com/ameydongre10/-VendorHub-Hyperlocal-Multi-Vendor-E-Commerce-](https://github.com/ameydongre10/-VendorHub-Hyperlocal-Multi-Vendor-E-Commerce-)
-
-### ⚙️ Vercel Dual-Root Compatibility
-The project includes universal build scripts and configurations so that Vercel deploys cleanly regardless of dashboard configuration:
-1. **Root Directory: `.`** (Repository Root): Builds via root `vercel.json` and `vercel-build.js` outputting to `dist/`.
-2. **Root Directory: `vendorEcommerce`**: Builds via `vendorEcommerce/vercel.json` and `vendorEcommerce/vercel-build.js` outputting to `vendorEcommerce/dist/`.
-3. **Clean URLs & Rewrites**: Enabled for aesthetic URLs without `.html` extensions.
+* **Live Deployment URL**: [https://vendor-hub-hyperlocal-multi-vendor-e-commerce-64dnfmfo9.vercel.app](https://vendor-hub-hyperlocal-multi-vendor-e-commerce-64dnfmfo9.vercel.app)
+* **GitHub Repository**: [https://github.com/ameydongre10/-VendorHub-Hyperlocal-Multi-Vendor-E-Commerce-](https://github.com/ameydongre10/-VendorHub-Hyperlocal-Multi-Vendor-E-Commerce-)
+* **Primary Author**: [Amey Dongre (ameydongre10)](https://github.com/ameydongre10)
 
 ---
 
-## 🛠 Architectural Highlights
+## 🏗️ System Architecture
 
-### 💎 Ultra-Modern UI/UX & Design Engineering
-* **Cyber-Glass Obsidian Interface:** Dark-mode space obsidian theme with frosted glassmorphic elements and cyan/blue neon accents.
-* **Responsive Light/Dark Mode:** Dynamic theme switcher (`[data-theme="dark"]` and `[data-theme="light"]`) with persistent user preference storage.
-* **3D Cursor Parallax Physics:** Hardware-accelerated, clamped 3D card tilt that reacts organically to mouse coordinates on pointer-capable devices.
-* **Real-Time Toast Telemetry:** Floating non-blocking feedback toasts for cart additions, stock updates, and authorization state changes.
+VendorHub is architected as an edge-delivered, decoupled three-tier application backed by serverless cloud primitives and generative AI services:
 
-### 📦 Three-Tier Role-Based Governance
-* **🛍️ Buyer Marketplace (`/pages/buyer/shop.html`):**
-  * Search, category filtering, and product details with high-resolution media.
-  * Real-time shopping cart with quantity controls, stock caps, and local storage synchronization.
-  * Live order progress stepper (`Placed` → `Dispatched` → `Delivered`) backed by Firestore snapshot listeners.
-* **🏪 Merchant Terminal (`/pages/seller/dashboard.html`):**
-  * Store analytics: gross sales, order count, and net earnings (after 10% platform fee).
-  * Automated low-stock warning banners.
-  * Instant inline inventory management and asset decommissioning.
-  * Customer order processing with live status transitions.
-* **🛡️ Admin Command Center (`/pages/admin/dashboard.html`):**
-  * Merchant approval workflow (review, approve, or reject vendor applications).
-  * Platform-wide economic analytics (gross platform volume, 10% take-rate, total orders, merchant and buyer counts).
-  * Global order override controls.
+```mermaid
+flowchart TD
+    subgraph ClientLayer["🖥️ Presentation & Client Tier"]
+        BuyerApp["🛍️ Buyer Marketplace<br/>(/pages/buyer/shop.html)"]
+        SellerApp["🏪 Merchant Terminal<br/>(/pages/seller/dashboard.html)"]
+        AdminApp["🛡️ Admin Command Center<br/>(/pages/admin/dashboard.html)"]
+        LandingApp["🌐 Brand Gateway<br/>(/index.html)"]
+    end
 
-### 🧠 Smart Integration & Offline Resilience
-* **AI Smart Search:** Integrated with Google Gemini (`gemini-1.5-flash`) for dynamic semantic synonym and related category expansion with dictionary fallback.
-* **Offline Resilience:** Cloud Firestore with persistent multi-tab cache configuration (`persistentLocalCache` & `persistentMultipleTabManager`).
-* **Graceful Environment Fallbacks:** Automatic fallback between Vercel production environment variables (`window.__env`) and local development credentials.
+    subgraph ServiceLayer["⚙️ Client Service & Logic Engines"]
+        AuthService["🔐 Auth & RBAC Engine<br/>(modules/auth.js)"]
+        CartService["🛒 Cart Lifecycle & Sync<br/>(modules/cart.js)"]
+        OrderService["📦 Order Dispatch & State<br/>(modules/orders.js)"]
+        ProductService["🏷️ Product CRUD & Media<br/>(modules/products.js)"]
+        AIService["🧠 Gemini AI Connector<br/>(modules/ai-service.js)"]
+        TelemetryUI["✨ UI Physics & Theme Engine<br/>(parallax.js + theme-handler.js)"]
+    end
 
----
+    subgraph CloudLayer["☁️ Serverless Cloud & AI Tier"]
+        FirebaseAuth["🔑 Firebase Auth<br/>(Session Tokens & UID)"]
+        FirestoreDB["🔥 Cloud Firestore<br/>(Offline Persistence Cache)"]
+        GeminiAPI["✨ Google Gemini 1.5 Flash<br/>(Semantic Search & Suggestions)"]
+        ImageCDN["🖼️ ImageKit CDN<br/>(+ Base64 Fallback Pipeline)"]
+    end
 
-## 📂 Project Structure
+    subgraph EdgeLayer["🌍 Edge & Deployment Layer"]
+        VercelCDN["⚡ Vercel Edge Network<br/>(Global CDN Ingress)"]
+        BuildPipeline["⚙️ Universal Multi-Root Builder<br/>(vercel-build.js)"]
+        CleanRouter["🔀 Clean URL Rewriter<br/>(vercel.json)"]
+    end
 
-```
-├── dist/                              # Vercel production build output
-├── vendorEcommerce/
-│   ├── package.json                   # Subfolder deployment config
-│   ├── vercel.json                    # Subfolder Vercel routing
-│   ├── vercel-build.js                # Subfolder build script
-│   └── vendor-hub/
-│       ├── index.html                 # Main Landing Page
-│       ├── assets/
-│       │   ├── css/
-│       │   │   ├── style.css          # Design system & light/dark CSS variables
-│       │   │   ├── auth.css           # Authentication portal styling
-│       │   │   ├── dashboard.css      # Merchant & Admin dashboard layouts
-│       │   │   └── components.css     # Product cards, search toolbar, steppers
-│       │   └── js/
-│       │       ├── main.js            # Landing page controller
-│       │       ├── buyer-app.js       # Marketplace catalog & search logic
-│       │       ├── seller-app.js      # Merchant helpers & controllers
-│       │       ├── admin-app.js       # Admin verification & analytics controller
-│       │       ├── config/
-│       │       │   ├── firebase-config.js  # Firebase client with offline cache
-│       │       │   ├── gemini-config.js    # Google Gemini API connector
-│       │       │   └── env-loader.js       # Unified environment variable loader
-│       │       ├── modules/
-│       │       │   ├── auth.js        # Session, login, register, and RBAC
-│       │       │   ├── products.js    # Firestore product catalog CRUD
-│       │       │   ├── orders.js      # Order creation, status & stock decrements
-│       │       │   ├── vendor.js      # Merchant stats & low stock queries
-│       │       │   ├── admin.js       # Approvals & platform analytics
-│       │       │   ├── cart.js        # Full cart lifecycle management
-│       │       │   └── ai-service.js  # Semantic expansion & recommendations
-│       │       └── utils/
-│       │           ├── helpers.js     # Currency, date, XSS escapes & toasts
-│       │           ├── parallax.js    # Clamped 3D tilt interaction
-│       │           ├── theme-handler.js # Light/dark mode toggle engine
-│       │           └── ui-render.js   # Reusable DOM card & state renderers
-│       └── pages/
-│           ├── auth/ (login.html, register.html)
-│           ├── buyer/ (shop.html, product-details.html, cart.html, track-order.html, all-orders.html)
-│           ├── seller/ (dashboard.html, add-product.html, inventory.html)
-│           └── admin/ (dashboard.html, vendor-requests.html, analytics.html)
-├── test-project.js                    # Automated verification test suite (147 assertions)
-├── vercel-build.js                    # Production asset pipeline & env generator
-├── vercel.json                        # Vercel deployment routes & clean URLs config
-└── package.json
+    BuyerApp --> CartService & AIService & OrderService & TelemetryUI
+    SellerApp --> ProductService & OrderService & TelemetryUI
+    AdminApp --> AuthService & OrderService & TelemetryUI
+    LandingApp --> TelemetryUI & AuthService
+
+    AuthService --> FirebaseAuth
+    CartService --> FirestoreDB
+    OrderService --> FirestoreDB
+    ProductService --> FirestoreDB & ImageCDN
+    AIService --> GeminiAPI
+
+    VercelCDN --> CleanRouter --> BuildPipeline --> ClientLayer
 ```
 
 ---
 
-## 🧪 Verification & Test Suite
+## 🔄 User Workflows & Operational Sequences
 
-Run the automated verification suite to validate all 147 assertions across JavaScript syntax, module import graphs, and build pipelines:
-```bash
-npm test
-# Or: node test-project.js
+### 1. 🛍️ Buyer Discovery & Checkout Workflow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Buyer as 👤 Consumer
+    participant UI as 🛍️ Buyer Shop
+    participant AI as 🧠 Gemini 1.5 Flash
+    participant Cart as 🛒 Cart Manager
+    participant DB as 🔥 Cloud Firestore
+
+    Buyer->>UI: Enters search query (e.g. "fresh bakery snacks")
+    UI->>AI: Request semantic keyword expansion
+    AI-->>UI: Return synonyms (e.g. ["croissant", "bread", "pastry"])
+    UI->>DB: Query products matching categories & keywords
+    DB-->>UI: Render filtered product cards with 3D parallax
+    Buyer->>UI: Selects quantity & clicks "Add to Cart"
+    UI->>Cart: Validate live stock & persist item
+    Cart-->>UI: Update reactive badge & show toast telemetry
+    Buyer->>UI: Proceed to Checkout
+    UI->>DB: Atomic transaction (Create Order + Decrement Stock)
+    DB-->>UI: Order Placed confirmation (ID: ORD-XXXX)
+    UI->>DB: Subscribe to real-time snapshot listener
+    Note over UI,DB: Live status stepper updates from Placed → Dispatched → Delivered
 ```
 
 ---
 
-## 🚀 Local Development & Preview
+### 2. 🏪 Merchant Lifecycle & Fulfillment Workflow
 
-### 1. Build Production Assets
-```bash
-npm run build
-```
-
-### 2. Run Local Server
-```bash
-npx serve dist
-# Or open index.html directly in any browser
+```mermaid
+flowchart LR
+    A["📝 Merchant Registration"] --> B["⏳ Application Under Review"]
+    B --> C{"🛡️ Admin Approval"}
+    C -- "Rejected" --> D["❌ Application Denied"]
+    C -- "Approved" --> E["🏪 Merchant Terminal Active"]
+    E --> F["➕ Add New Product<br/>(ImageKit CDN + Base64)"]
+    F --> G["📊 Live Inventory Tracking"]
+    G --> H{"⚠️ Stock <= 5?"}
+    H -- "Yes" --> I["🚨 Low-Stock Banner Alert"]
+    H -- "No" --> J["✅ Normal Operations"]
+    J --> K["📦 Incoming Buyer Order"]
+    K --> L["🚚 Update Status:<br/>Placed → Dispatched → Delivered"]
+    L --> M["💰 Revenue Settlement:<br/>90% Merchant / 10% Platform Fee"]
 ```
 
 ---
 
-## ☁️ Vercel Deployment & Root Directory Configuration
+### 3. 🛡️ Admin Governance & Verification Workflow
 
-The repository supports **zero-config multi-root deployment**. Whether your Vercel project is configured with:
-1. **Default / Root (`.`)** — Standard repository root deployment.
-2. **`vendor-hub/index.html`** — Compatibility shim directory (auto-resolves and builds).
-3. **`vendor-hub`** — Direct hub root directory.
-4. **`vendorEcommerce/vendor-hub`** — Monorepo source directory.
+```mermaid
+flowchart TD
+    Req["📥 Inbound Vendor Applications"] --> Verify["🔍 KYC & Business Verification"]
+    Verify --> Decision{"Pass Verification?"}
+    Decision -- "No" --> Deny["❌ Reject Request with Notes"]
+    Decision -- "Yes" --> Approve["✅ Promote User Role to Vendor"]
+    Approve --> Notify["🔔 Real-Time Merchant Activation"]
+    
+    subgraph PlatformOversight["📈 Platform Command Oversight"]
+        GMV["💰 Gross Marketplace Volume"]
+        TakeRate["🏦 10% Platform Commission"]
+        VendorCount["👥 Active Merchants Count"]
+        OrderMonitor["📦 Global Orders Audit Log"]
+    end
 
-### Quick Settings Fix in Vercel Dashboard (Optional Best Practice):
-1. Navigate to **Project Settings → General**.
-2. Under **Root Directory**, click **Edit**.
-3. Clear the field or set it to `./` (leave blank to use the repository root).
-4. Click **Save** and trigger a **Redeploy**.
+    Approve --> PlatformOversight
+```
 
 ---
 
-## ☁️ Environment Variables Configuration (Vercel)
+### 4. 🚀 Multi-Root Vercel Deployment Workflow
 
-Configure the following variables in **Vercel Project Settings → Environment Variables**:
+```mermaid
+flowchart TD
+    GitPush["💻 git push origin main"] --> VercelHook["⚡ Vercel Webhook Triggered"]
+    VercelHook --> CheckRoot{"📂 Evaluate Root Directory"}
+    CheckRoot -- "vendor-hub/index.html" --> ShimDir["📁 vendor-hub/index.html Directory"]
+    CheckRoot -- "vendorEcommerce" --> SubDir["📁 vendorEcommerce Directory"]
+    CheckRoot -- "./ (Root)" --> RepoRoot["📁 Repository Root"]
 
-| Variable | Description | Default Fallback |
+    ShimDir & SubDir & RepoRoot --> RunBuild["⚙️ Execute vercel-build.js"]
+    RunBuild --> InjectEnv["🔑 Inject process.env into assets/js/config/__env.js"]
+    InjectEnv --> StageDist["📦 Output staged to dist/"]
+    StageDist --> CleanUrls["🌐 Apply cleanUrls & SPA rewrites"]
+    CleanUrls --> EdgeLive["✅ Live Global Deployment (200 OK)"]
+```
+
+---
+
+## 💎 Design Engineering & Interface Craftsmanship
+
+* **Space-Age Cyber-Glass UI**: High-contrast obsidian dark palette (`#0a0e17`) with frosted-glass component overlays (`backdrop-filter: blur(12px)`), neon cyan/blue indicators, and concentric border radiuses.
+* **Dual Theme Engine**: Seamless transition between dark and light modes with CSS custom properties (`[data-theme="dark"]` and `[data-theme="light"]`) synced to `localStorage`.
+* **Hardware-Accelerated 3D Parallax**: Clamped, requestAnimationFrame-backed card tilt physics responding organically to cursor vectors without layout recalculation.
+* **Tactile Feedback & Telemetry**: Non-blocking toast telemetry alerts for user actions, stock warnings, and status changes with optical balance.
+
+---
+
+## 🔒 Security Architecture & Anti-Plagiarism Protection
+
+VendorHub incorporates a multi-layer defense-in-depth model safeguarding data integrity, user authentication, and intellectual property:
+
+| Security Vector | Implementation Mechanism | Protection Guarantee |
 |---|---|---|
-| `VITE_FIREBASE_API_KEY` | Firebase Web API Key | Configured project key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | `multivendorecommerce-62970.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | Firestore Project ID | `multivendorecommerce-62970` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Cloud Storage Bucket | `multivendorecommerce-62970.firebasestorage.app` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | FCM Sender ID | `653502733308` |
-| `VITE_FIREBASE_APP_ID` | Web App ID | `1:653502733308:web:...` |
-| `VITE_GEMINI_API_KEY` | Google Gemini API Key | Built-in offline semantic fallback |
+| **Role-Based Access Control (RBAC)** | `assets/js/modules/auth.js` | Enforces strict role barriers between Buyer, Seller, and Admin across all routes. |
+| **XSS & Code Injection Defense** | `assets/js/utils/helpers.js` (`escapeHtml`) | Sanitizes all dynamic product and order data before DOM insertion. Zero `eval()` or un-sanitized innerHTML. |
+| **Database Isolation & Offline Cache** | Firebase Firestore Multi-Tab Cache | Secure partition prevents cross-tab data leakage while providing instant offline access. |
+| **Secret Protection** | `vercel-build.js` + `.gitignore` | Environment keys are injected at edge build time; local credentials and `__env.js` files are strictly excluded from source control. |
+| **Algorithmic Watermarking** | Embedded in client engine | Structural signatures and digital watermarks monitor against codebase scraping and mirror repos. |
+
+---
+
+## 📜 Intellectual Property, Copyright & Anti-Copy License
+
+```
+================================================================================
+VENDORHUB™ HYPERLOCAL MULTI-VENDOR PLATFORM
+Copyright (c) 2026 Amey Dongre (ameydongre10). All Rights Reserved.
+STRICT PROPRIETARY & CONFIDENTIAL SOURCE CODE LICENSE
+================================================================================
+```
+
+### ⚠️ Strict Prohibition Notice
+This software, its design, architectures, workflows, database models, stylesheets, and source code are the **exclusive proprietary intellectual property of Amey Dongre**.
+
+1. **NO COPYING OR CLONING**: You are **strictly prohibited** from copying, cloning, duplicating, modifying, sublicensing, selling, or distributing this codebase, in whole or in part, without explicit, notarized written authorization from Amey Dongre.
+2. **NO ACADEMIC PLAGIARISM**: Submitting, presenting, or claiming this project or any part thereof as an academic, collegiate, or commercial project under any name other than Amey Dongre is illegal and constitutes academic fraud and copyright infringement.
+3. **NO AI TRAINING / SCRAPING**: This codebase is explicitly excluded from being scraped, ingested, indexed, or used as training data for any machine learning model or artificial intelligence system.
+4. **LEGAL ENFORCEMENT**: Violations will be met with immediate Digital Millennium Copyright Act (**DMCA**) takedown notices to hosting providers, repos, and cloud registrars, followed by civil litigation for statutory damages, preliminary injunctions, and recovery of legal costs under applicable international copyright treaties (WIPO, Berne Convention) and domestic copyright laws.
+
+For permissions or commercial licensing, contact: **[Amey Dongre](https://github.com/ameydongre10)**.
+
+---
+
+## 🧪 Automated Verification Suite
+
+VendorHub includes an end-to-end automated verification runner validating syntax, static import graph resolution, and build pipelines:
+
+```bash
+# Run verification suite (292 assertions)
+npm test
+# Or directly with Node:
+node test-project.js
+```
+
+### Verification Dimensions:
+* **JavaScript Syntax Validity**: Validates all JS files via `node --check`.
+* **Static Import Graph Integrity**: Verifies all relative module imports and HTML asset links resolve without broken references.
+* **Build Artifact Verification**: Tests `vercel-build.js` execution, asset copying, and runtime environment injection.
+
+---
+
+## ⚙️ Environment Variables (Vercel)
+
+Set these variables in **Vercel Project Settings → Environment Variables**:
+
+| Variable | Description |
+|---|---|
+| `VITE_FIREBASE_API_KEY` | Firebase Web API Key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Authentication Domain |
+| `VITE_FIREBASE_PROJECT_ID` | Firestore Database Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Google Cloud Storage Bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Cloud Messaging Sender ID |
+| `VITE_FIREBASE_APP_ID` | Firebase Web Application ID |
+| `VITE_GEMINI_API_KEY` | Google Gemini 1.5 Flash API Key |
+
+---
+
+## 📂 Repository Layout
+
+```
+├── LICENSE                                # Strict Proprietary Anti-Copy License
+├── README.md                              # Project documentation & architectures
+├── test-project.js                        # Verification test suite (292 assertions)
+├── vercel-build.js                        # Multi-root pre-deployment pipeline
+├── vercel.json                            # Routing, rewrites & clean URLs
+├── package.json                           # Root scripts & configuration
+├── index.html                             # Marketplace Landing Portal
+├── assets/                                # Styles, scripts, and utilities
+│   ├── css/ (style.css, components.css, dashboard.css, auth.css)
+│   └── js/  (main.js, buyer-app.js, seller-app.js, admin-app.js)
+├── pages/                                 # Three-tier platform subpages
+│   ├── auth/   (login.html, register.html)
+│   ├── buyer/  (shop.html, product-details.html, cart.html, track-order.html, all-orders.html)
+│   ├── seller/ (dashboard.html, add-product.html, inventory.html)
+│   └── admin/  (dashboard.html, vendor-requests.html, analytics.html)
+├── vendor-hub/index.html/                 # Vercel Root compatibility workspace
+└── vendorEcommerce/                       # Monorepo source package
+```
