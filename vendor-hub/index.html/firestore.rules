@@ -1,0 +1,304 @@
+rules_version = '2';
+
+// ===============================================================
+// VendorHub Hyperlocal Multi-Vendor E-Commerce Platform
+// Cloud Firestore Security Rules
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - uid: string (required, immutable) - Firebase Auth UID of user
+//   - email: string (required, valid email, max 150 chars) - User's email address (PII)
+//   - name: string (required, 1-100 chars) - Full name or display name
+//   - role: string (required, 'buyer' | 'seller' | 'admin') - User system role
+//   - status: string (required, 'approved' | 'pending' | 'rejected') - Account state
+//   - createdAt: string | timestamp (required, immutable) - Account creation timestamp
+//   - updatedAt: string | timestamp (optional) - Profile modification timestamp
+//   - address: string (optional, max 300 chars) - Street/shipping address
+//   - phone: string (optional, max 30 chars) - Contact number
+//   - password: string (optional, max 128 chars) - Client auth credential record
+//
+// Collection: products
+// Document ID: {productId}
+// Fields:
+//   - name: string (required, 1-200 chars) - Product name
+//   - description: string (required, 1-3000 chars) - Full product description
+//   - price: number (required, > 0) - Unit price
+//   - stock: number (required, >= 0) - Inventory available
+//   - category: string (required, 1-100 chars) - Category descriptor
+//   - image: string (required, valid URL / data URI, max 1,000,000 chars) - Product visual asset
+//   - vendorId: string (required, immutable) - Seller UID
+//   - vendorName: string (required, 1-100 chars) - Seller business display name
+//   - createdAt: string | timestamp (required, immutable) - Listing creation timestamp
+//   - updatedAt: string | timestamp (optional) - Listing update timestamp
+//   - rating: number (optional, 0-5) - Star rating
+//   - reviewsCount: number (optional, >= 0) - Total reviews count
+//   - imageKitId: string (optional, max 128 chars) - Storage asset identifier
+//
+// Collection: orders
+// Document ID: {orderId}
+// Fields:
+//   - buyerId: string (required, immutable) - UID of placing buyer
+//   - buyerName: string (required, 1-100 chars) - Name of recipient buyer
+//   - buyerEmail: string (required, valid email, max 150 chars) - Contact email
+//   - shippingAddress: string (required, 1-500 chars) - Delivery destination
+//   - items: list (required, 1-100 items) - Snapshot array of ordered items
+//   - totalAmount: number (required, >= 0) - Order gross total
+//   - vendorIds: list (required, 1-50 strings) - UIDs of vendors fulfilling order
+//   - status: string (required) - 'Placed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled'
+//   - createdAt: string | timestamp (required, immutable) - Order submission timestamp
+//   - statusHistory: list (optional, max 50 entries) - Lifecycle audit log
+//   - updatedAt: string | timestamp (optional) - Status update timestamp
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Global Default Deny
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Common Helper Functions
+    // ===============================================================
+
+    // Check if the request is from an authenticated user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the current user owns the resource based on provided UID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Verify platform administrator privilege from custom token claims, bootstrap email, or user doc
+    function isAdmin() {
+      return isAuthenticated() && (
+        ('admin' in request.auth.token && request.auth.token.admin == true) ||
+        ('role' in request.auth.token && request.auth.token.role == 'admin') ||
+        ('email' in request.auth.token && request.auth.token.email == 'admin@vendorhub.com') ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        )
+      );
+    }
+
+    // Verify seller privilege from token claims or user record
+    function isSeller() {
+      return isAuthenticated() && (
+        ('role' in request.auth.token && request.auth.token.role == 'seller') ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'seller'
+        )
+      );
+    }
+
+    // Validate email format and bounded length
+    function isValidEmail(email) {
+      return email is string &&
+        email.size() <= 150 &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Validate product image URL format (HTTP/HTTPS or valid Base64 data URL)
+    function isValidProductImage(image) {
+      return image is string &&
+        image.size() >= 5 &&
+        image.size() <= 1000000 &&
+        (image.matches("^https?://.*") || image.matches("^data:image/.*"));
+    }
+
+    // ===============================================================
+    // Domain Validator: Users
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasOnly(['uid', 'email', 'name', 'role', 'status', 'createdAt', 'updatedAt', 'address', 'phone', 'password']) &&
+        data.keys().hasAll(['uid', 'email', 'name', 'role', 'status', 'createdAt']) &&
+        data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+        isValidEmail(data.email) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        data.role is string && (data.role in ['buyer', 'seller', 'admin']) &&
+        data.status is string && (data.status in ['approved', 'pending', 'rejected']) &&
+        ((data.createdAt is timestamp) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is timestamp) || (data.updatedAt is string && data.updatedAt.size() <= 50)) &&
+        (!('address' in data) || (data.address is string && data.address.size() <= 300)) &&
+        (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+        (!('password' in data) || (data.password is string && data.password.size() <= 128));
+    }
+
+    function isValidUserCreate(userId) {
+      return isValidUser(request.resource.data) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.role in ['buyer', 'seller'] &&
+        (
+          (request.resource.data.role == 'buyer' && request.resource.data.status == 'approved') ||
+          (request.resource.data.role == 'seller' && request.resource.data.status == 'pending')
+        );
+    }
+
+    function isValidUserUpdate(userId) {
+      return isValidUser(request.resource.data) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.status == resource.data.status;
+    }
+
+    function isValidUserAdminUpdate() {
+      return isValidUser(request.resource.data) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // ===============================================================
+    // Domain Validator: Products
+    // ===============================================================
+
+    function isValidProduct(data) {
+      return data.keys().hasOnly(['name', 'description', 'price', 'stock', 'category', 'image', 'vendorId', 'vendorName', 'createdAt', 'updatedAt', 'rating', 'reviewsCount', 'imageKitId']) &&
+        data.keys().hasAll(['name', 'description', 'price', 'stock', 'category', 'image', 'vendorId', 'vendorName', 'createdAt']) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 200 &&
+        data.description is string && data.description.size() >= 1 && data.description.size() <= 3000 &&
+        data.price is number && data.price > 0 &&
+        data.stock is number && data.stock >= 0 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 100 &&
+        isValidProductImage(data.image) &&
+        data.vendorId is string && data.vendorId.size() >= 1 && data.vendorId.size() <= 128 &&
+        data.vendorName is string && data.vendorName.size() >= 1 && data.vendorName.size() <= 100 &&
+        ((data.createdAt is timestamp) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is timestamp) || (data.updatedAt is string && data.updatedAt.size() <= 50)) &&
+        (!('rating' in data) || (data.rating is number && data.rating >= 0 && data.rating <= 5)) &&
+        (!('reviewsCount' in data) || (data.reviewsCount is number && data.reviewsCount >= 0)) &&
+        (!('imageKitId' in data) || (data.imageKitId is string && data.imageKitId.size() <= 128));
+    }
+
+    function isValidProductCreate() {
+      return isValidProduct(request.resource.data) &&
+        request.resource.data.vendorId == request.auth.uid &&
+        (isSeller() || isAdmin());
+    }
+
+    function isValidProductUpdate() {
+      return isValidProduct(request.resource.data) &&
+        request.resource.data.vendorId == resource.data.vendorId &&
+        request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // ===============================================================
+    // Domain Validator: Orders
+    // ===============================================================
+
+    function isValidOrder(data) {
+      return data.keys().hasOnly(['buyerId', 'buyerName', 'buyerEmail', 'shippingAddress', 'items', 'totalAmount', 'vendorIds', 'status', 'createdAt', 'statusHistory', 'updatedAt']) &&
+        data.keys().hasAll(['buyerId', 'buyerName', 'buyerEmail', 'shippingAddress', 'items', 'totalAmount', 'vendorIds', 'status', 'createdAt']) &&
+        data.buyerId is string && data.buyerId.size() >= 1 && data.buyerId.size() <= 128 &&
+        data.buyerName is string && data.buyerName.size() >= 1 && data.buyerName.size() <= 100 &&
+        isValidEmail(data.buyerEmail) &&
+        data.shippingAddress is string && data.shippingAddress.size() >= 1 && data.shippingAddress.size() <= 500 &&
+        data.items is list && data.items.size() >= 1 && data.items.size() <= 100 &&
+        data.totalAmount is number && data.totalAmount >= 0 &&
+        data.vendorIds is list && data.vendorIds.size() >= 1 && data.vendorIds.size() <= 50 &&
+        data.status is string && (data.status in ['Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled']) &&
+        ((data.createdAt is timestamp) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('statusHistory' in data) || (data.statusHistory is list && data.statusHistory.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is timestamp) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidOrderCreate() {
+      return isValidOrder(request.resource.data) &&
+        request.resource.data.buyerId == request.auth.uid &&
+        request.resource.data.status == 'Placed';
+    }
+
+    function isValidOrderUpdate() {
+      return isValidOrder(request.resource.data) &&
+        request.resource.data.buyerId == resource.data.buyerId &&
+        request.resource.data.buyerEmail == resource.data.buyerEmail &&
+        request.resource.data.buyerName == resource.data.buyerName &&
+        request.resource.data.items == resource.data.items &&
+        request.resource.data.totalAmount == resource.data.totalAmount &&
+        request.resource.data.vendorIds == resource.data.vendorIds &&
+        request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    // ===============================================================
+    // Collection Access Rules
+    // ===============================================================
+
+    // ---------------------------------------------------------------
+    // 1. Users Collection
+    // ---------------------------------------------------------------
+    match /users/{userId} {
+      // Read: Only authenticated users can read their own document or platform admins
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Create: Authenticated users creating their own profile (buyer/seller only; status enforced)
+      // Admins can also create user records
+      allow create: if (isAuthenticated() && isOwner(userId) && isValidUserCreate(userId)) ||
+                       (isAdmin() && isValidUser(request.resource.data));
+
+      // Update: Users can update profile data (name, address, etc.) but cannot change role or status
+      // Admins can update role and status
+      allow update: if (isOwner(userId) && isValidUserUpdate(userId)) ||
+                       (isAdmin() && isValidUserAdminUpdate());
+
+      // Delete: Admin only
+      allow delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------
+    // 2. Products Collection
+    // ---------------------------------------------------------------
+    match /products/{productId} {
+      // Read: Public (any buyer or visitor can view product listings)
+      allow read: if true;
+
+      // Create: Authenticated sellers or admins where vendorId == request.auth.uid
+      allow create: if (isAuthenticated() && isValidProductCreate()) ||
+                       (isAdmin() && isValidProduct(request.resource.data));
+
+      // Update: Vendor owner or admin; cannot change vendorId or createdAt
+      allow update: if (isAuthenticated() && resource.data.vendorId == request.auth.uid && isValidProductUpdate()) ||
+                       (isAdmin() && isValidProductUpdate());
+
+      // Delete: Vendor owner or admin
+      allow delete: if (isAuthenticated() && resource.data.vendorId == request.auth.uid) || isAdmin();
+    }
+
+    // ---------------------------------------------------------------
+    // 3. Orders Collection
+    // ---------------------------------------------------------------
+    match /orders/{orderId} {
+      // Read: Buyer who placed the order, any vendor involved, or admin
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.buyerId ||
+        request.auth.uid in resource.data.vendorIds ||
+        isAdmin()
+      );
+
+      // Create: Authenticated buyer creating their own order; initial status must be 'Placed'
+      allow create: if (isAuthenticated() && isValidOrderCreate()) ||
+                       (isAdmin() && isValidOrder(request.resource.data));
+
+      // Update: Authenticated vendor involved in the order or admin (e.g. status transition)
+      // Buyers cannot modify orders once placed; financial and line item data is immutable
+      allow update: if (isAuthenticated() && request.auth.uid in resource.data.vendorIds && isValidOrderUpdate()) ||
+                       (isAdmin() && isValidOrderUpdate());
+
+      // Delete: Admin only
+      allow delete: if isAdmin();
+    }
+  }
+}

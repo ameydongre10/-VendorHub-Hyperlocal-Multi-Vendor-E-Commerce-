@@ -72,7 +72,7 @@
         import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
         import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
-        import { showToast, formatCurrency, formatDate } from "../../assets/js/utils/helpers.js";
+        import { showToast, formatCurrency, formatDate, escapeHtml } from "../../assets/js/utils/helpers.js";
         import { db } from "../../assets/js/config/firebase-config.js";
         import { collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -110,12 +110,12 @@
                     list.innerHTML = vendors.map(v => `
                         <div class="cart-item" style="margin-bottom:0.8rem;">
                             <div>
-                                <strong style="font-size:1.1rem;">${v.name || 'Unnamed Vendor'}</strong>
-                                <span style="display:block; color:var(--text-muted); font-size:0.85rem;">Email: ${v.email || 'N/A'} • Applied: ${formatDate(v.createdAt)}</span>
+                                <strong style="font-size:1.1rem;">${escapeHtml(v.name || 'Unnamed Vendor')}</strong>
+                                <span style="display:block; color:var(--text-muted); font-size:0.85rem;">Email: ${escapeHtml(v.email || 'N/A')} • Applied: ${formatDate(v.createdAt)}</span>
                             </div>
                             <div>
-                                <button class="approve-btn" onclick="approveVendor('${v.id}')">Approve</button>
-                                <button class="reject-btn" onclick="rejectVendor('${v.id}')">Reject</button>
+                                <button class="approve-btn" onclick="approveVendor('${escapeHtml(v.id)}')">Approve</button>
+                                <button class="reject-btn" onclick="rejectVendor('${escapeHtml(v.id)}')">Reject</button>
                             </div>
                         </div>
                     `).join('');
@@ -152,11 +152,11 @@
                         <div class="order-item">
                             <div>
                                 <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-                                    <strong>Order #${shortId}</strong>
-                                    <span class="status-tag status-${(order.status || 'placed').toLowerCase()}">${order.status || 'Placed'}</span>
+                                    <strong>Order #${escapeHtml(shortId)}</strong>
+                                    <span class="status-tag status-${escapeHtml((order.status || 'placed').toLowerCase())}">${escapeHtml(order.status || 'Placed')}</span>
                                 </div>
                                 <div style="font-size:0.85rem; color:var(--text-muted);">
-                                    <span>Customer: ${order.buyerName || shortBuyer}</span> • 
+                                    <span>Customer: ${escapeHtml(order.buyerName || shortBuyer)}</span> • 
                                     <span>Items: ${itemCount}</span> • 
                                     <span>Date: ${formatDate(order.createdAt)}</span>
                                 </div>
@@ -165,7 +165,7 @@
                                 </div>
                             </div>
                             <div>
-                                <select onchange="adminUpdateStatus('${order.id}', this.value)" style="padding:6px 12px; font-size:0.85rem; border-radius:6px;">
+                                <select onchange="adminUpdateStatus('${escapeHtml(order.id)}', this.value)" style="padding:6px 12px; font-size:0.85rem; border-radius:6px;">
                                     <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
                                     <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
                                     <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>

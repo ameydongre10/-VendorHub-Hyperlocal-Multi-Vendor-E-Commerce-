@@ -11,9 +11,8 @@ import {
     where 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Optional ImageKit configuration
-const IMAGEKIT_PRIVATE_KEY = "private_uS6EHyY9gfAjbQRPgSNUZH8TvFg=";
-const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+// Secure image upload configuration (Private keys must never be exposed client-side)
+// Media uploads use secure client Data URL conversion or Firebase Storage.
 
 /**
  * Curated professional hyperlocal catalog assets.
@@ -363,35 +362,9 @@ export const addProduct = async (productData, imageFile) => {
 
         if (imageFile) {
             try {
-                // Attempt ImageKit upload
-                const formData = new FormData();
-                formData.append("file", imageFile);
-                formData.append("fileName", `prod_${Date.now()}_${(productData.name || 'item').replace(/\s+/g, '_')}`);
-                formData.append("useUniqueFileName", "true");
-                formData.append("folder", "/products");
-
-                const uploadResponse = await fetch(IMAGEKIT_UPLOAD_URL, {
-                    method: "POST",
-                    headers: {
-                        Authorization: "Basic " + btoa(IMAGEKIT_PRIVATE_KEY + ":")
-                    },
-                    body: formData
-                });
-
-                if (uploadResponse.ok) {
-                    const uploadResult = await uploadResponse.json();
-                    if (uploadResult && uploadResult.url) {
-                        imageUrl = uploadResult.url;
-                        imageId = uploadResult.fileId || "";
-                    }
-                }
-            } catch (imgKitErr) {
-                console.warn("[VendorHub] ImageKit upload unavailable; falling back to Data URL:", imgKitErr.message);
-            }
-
-            // Fallback: If ImageKit did not produce a URL, use local Data URL
-            if (!imageUrl) {
                 imageUrl = await readFileAsDataUrl(imageFile);
+            } catch (readErr) {
+                console.warn("[VendorHub] Media conversion error, using fallback placeholder:", readErr.message);
             }
         }
 
@@ -511,11 +484,20 @@ export const getAllProducts = async () => {
 };
 
 /**
- * Updates stock levels for inventory management.
+ * Updates stock levels for inventory management with caller authorization verification.
  */
-export const updateProductStock = async (productId, newStock) => {
+export const updateProductStock = async (productId, newStock, user = null) => {
     try {
         const productRef = doc(db, "products", productId);
+        if (user) {
+            const snap = await getDoc(productRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.vendorId && data.vendorId !== user.uid && user.role !== 'admin') {
+                    return { success: false, error: "Unauthorized: You do not own this product listing." };
+                }
+            }
+        }
         const stockVal = Math.max(0, parseInt(newStock, 10) || 0);
         await updateDoc(productRef, { 
             stock: stockVal,
@@ -528,11 +510,20 @@ export const updateProductStock = async (productId, newStock) => {
 };
 
 /**
- * Updates an entire product's metadata.
+ * Updates an entire product's metadata with caller authorization verification.
  */
-export const updateProduct = async (productId, updatedData) => {
+export const updateProduct = async (productId, updatedData, user = null) => {
     try {
         const productRef = doc(db, "products", productId);
+        if (user) {
+            const snap = await getDoc(productRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.vendorId && data.vendorId !== user.uid && user.role !== 'admin') {
+                    return { success: false, error: "Unauthorized: You do not own this product listing." };
+                }
+            }
+        }
         await updateDoc(productRef, {
             ...updatedData,
             updatedAt: new Date().toISOString()
@@ -544,11 +535,21 @@ export const updateProduct = async (productId, updatedData) => {
 };
 
 /**
- * Deletes a product from the database.
+ * Deletes a product from the database with caller authorization verification.
  */
-export const deleteProduct = async (productId) => {
+export const deleteProduct = async (productId, user = null) => {
     try {
-        await deleteDoc(doc(db, "products", productId));
+        const productRef = doc(db, "products", productId);
+        if (user) {
+            const snap = await getDoc(productRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.vendorId && data.vendorId !== user.uid && user.role !== 'admin') {
+                    return { success: false, error: "Unauthorized: You do not own this product listing." };
+                }
+            }
+        }
+        await deleteDoc(productRef);
         return { success: true };
     } catch (error) {
         return { success: false, error: error.message };

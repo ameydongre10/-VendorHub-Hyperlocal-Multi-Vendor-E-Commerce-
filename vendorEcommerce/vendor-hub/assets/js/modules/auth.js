@@ -12,6 +12,28 @@ import {
 // Normalize email for case-insensitive matching
 const normalizeEmail = (email) => (email || '').trim().toLowerCase();
 
+/**
+ * Hashes a password string with cryptographic salt using SHA-256 via Web Crypto API.
+ */
+export const hashPassword = async (password, salt = "vh_sec_2026_salt") => {
+    try {
+        if (typeof crypto !== "undefined" && crypto.subtle) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(salt + ":" + password);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+        }
+    } catch (_) {}
+    let hash = 0;
+    const str = salt + ":" + password;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return "vh_" + Math.abs(hash).toString(16);
+};
+
 // Pre-configured default demo accounts for instant access
 export const DEMO_ACCOUNTS = [
     {
@@ -103,14 +125,20 @@ export const registerUser = async (email, password, userData) => {
         }
 
         const userId = "usr_" + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-        // Sellers are approved by default so users can immediately access their store
+        // Mass assignment prevention: strictly restrict roles to 'buyer' or 'seller'
+        const allowedRoles = ["buyer", "seller"];
+        const requestedRole = (userData && userData.role ? String(userData.role) : "buyer").toLowerCase();
+        const role = allowedRoles.includes(requestedRole) ? requestedRole : "buyer";
         const status = "approved";
+
+        // Cryptographic password hash (never persist plaintext passwords)
+        const hashedPassword = await hashPassword(trimmedPassword);
 
         const newUser = {
             uid: userId,
             email: normEmail,
-            password: trimmedPassword, 
-            role: userData.role || "buyer",
+            password: hashedPassword, 
+            role: role,
             name: (userData.name || "User").trim(),
             status: status,
             createdAt: new Date().toISOString()
@@ -156,10 +184,12 @@ export const loginUser = async (email, password) => {
             return { success: false, error: "Please enter both email and password." };
         }
 
+        const hashedInput = await hashPassword(trimmedPassword);
+
         // 1. Check built-in demo accounts
         const demoMatch = DEMO_ACCOUNTS.find(u => normalizeEmail(u.email) === normEmail);
         if (demoMatch) {
-            if (demoMatch.password === trimmedPassword) {
+            if (demoMatch.password === trimmedPassword || demoMatch.password === hashedInput) {
                 const session = {
                     uid: demoMatch.uid,
                     email: demoMatch.email,
@@ -178,7 +208,7 @@ export const loginUser = async (email, password) => {
         const localUsers = getLocalUsers();
         const localMatch = localUsers.find(u => normalizeEmail(u.email) === normEmail);
         if (localMatch) {
-            if (localMatch.password === trimmedPassword) {
+            if (localMatch.password === hashedInput || localMatch.password === trimmedPassword) {
                 const session = {
                     uid: localMatch.uid,
                     email: localMatch.email,
@@ -205,7 +235,7 @@ export const loginUser = async (email, password) => {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
 
-                if (userData.password === trimmedPassword) {
+                if (userData.password === hashedInput || userData.password === trimmedPassword) {
                     const sessionData = { 
                         uid: userData.uid || userDoc.id, 
                         email: userData.email,

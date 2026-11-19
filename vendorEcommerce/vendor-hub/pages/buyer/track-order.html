@@ -218,7 +218,7 @@
                 
                 const statusPill = document.getElementById('track-status-pill');
                 const status = data.status || 'Placed';
-                statusPill.innerHTML = `<span class="status-tag status-${status.toLowerCase()}">${status}</span>`;
+                statusPill.innerHTML = `<span class="status-tag status-${escapeHtml(status.toLowerCase())}">${escapeHtml(status)}</span>`;
 
                 // Update Stepper
                 updateStepperUI(status);

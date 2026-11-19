@@ -1,7 +1,7 @@
 import { getPendingVendors, updateVendorStatus, getPlatformAnalytics } from "./modules/admin.js";
 import { checkAuthState, logoutUser } from "./modules/auth.js";
 import { initTheme, toggleTheme } from "./utils/theme-handler.js";
-import { showToast, formatDate } from "./utils/helpers.js";
+import { showToast, formatDate, escapeHtml } from "./utils/helpers.js";
 
 // Check Admin Authentication
 checkAuthState((user) => {
@@ -58,12 +58,12 @@ export async function loadRequests() {
         requests.forEach(vendor => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><strong>${vendor.name || 'Unnamed Vendor'}</strong></td>
-                <td>${vendor.email || 'N/A'}</td>
+                <td><strong>${escapeHtml(vendor.name || 'Unnamed Vendor')}</strong></td>
+                <td>${escapeHtml(vendor.email || 'N/A')}</td>
                 <td>${formatDate(vendor.createdAt)}</td>
                 <td>
-                    <button class="approve-btn" data-id="${vendor.id}">Approve</button>
-                    <button class="reject-btn" data-id="${vendor.id}">Reject</button>
+                    <button class="approve-btn" data-id="${escapeHtml(vendor.id)}">Approve</button>
+                    <button class="reject-btn" data-id="${escapeHtml(vendor.id)}">Reject</button>
                 </td>
             `;
             container.appendChild(row);

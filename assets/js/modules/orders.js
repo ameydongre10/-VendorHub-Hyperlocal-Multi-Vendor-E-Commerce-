@@ -24,14 +24,15 @@ export const createOrder = async (buyerId, items, total, vendorIds, buyerInfo = 
         // Normalize items array with snapshot details if possible
         const normalizedItems = [];
         const uniqueVendorIds = new Set(vendorIds || []);
+        let authoritativeTotal = 0;
 
         for (const item of items) {
             const productId = typeof item === 'object' ? (item.id || item.productId) : item;
-            const quantity = typeof item === 'object' ? (item.quantity || 1) : 1;
+            const quantity = typeof item === 'object' ? Math.max(1, parseInt(item.quantity, 10) || 1) : 1;
 
             let itemSnapshot = typeof item === 'object' ? { ...item } : { id: productId, quantity: 1 };
 
-            // Fetch live product to verify and decrement stock
+            // Fetch live product to verify price authoritatively and decrement stock
             try {
                 const productRef = doc(db, "products", productId);
                 const productSnap = await getDoc(productRef);
@@ -42,22 +43,32 @@ export const createOrder = async (buyerId, items, total, vendorIds, buyerInfo = 
                         uniqueVendorIds.add(prodData.vendorId);
                     }
 
-                    // Attach snapshot info if not present
-                    if (!itemSnapshot.name) itemSnapshot.name = prodData.name || "Product";
-                    if (!itemSnapshot.price) itemSnapshot.price = prodData.price || 0;
+                    // Attach authoritative snapshot info
+                    itemSnapshot.name = prodData.name || itemSnapshot.name || "Product";
+                    const authoritativePrice = typeof prodData.price === 'number' ? prodData.price : parseFloat(prodData.price) || 0;
+                    itemSnapshot.price = authoritativePrice;
+                    authoritativeTotal += authoritativePrice * quantity;
                     if (!itemSnapshot.image) itemSnapshot.image = prodData.image || "";
                     if (!itemSnapshot.vendorId) itemSnapshot.vendorId = prodData.vendorId || "";
 
                     const currentStock = typeof prodData.stock === 'number' ? prodData.stock : parseInt(prodData.stock) || 0;
                     const newStock = Math.max(0, currentStock - quantity);
                     await updateDoc(productRef, { stock: newStock });
+                } else {
+                    const fallbackPrice = typeof itemSnapshot.price === 'number' ? itemSnapshot.price : parseFloat(itemSnapshot.price) || 0;
+                    authoritativeTotal += fallbackPrice * quantity;
                 }
             } catch (stockErr) {
                 console.warn(`Could not update stock for product ${productId}:`, stockErr);
+                const fallbackPrice = typeof itemSnapshot.price === 'number' ? itemSnapshot.price : parseFloat(itemSnapshot.price) || 0;
+                authoritativeTotal += fallbackPrice * quantity;
             }
 
             normalizedItems.push(itemSnapshot);
         }
+
+        // Authoritative pricing calculation (protects against client-side cart price tampering)
+        const calculatedAmount = authoritativeTotal > 0 ? authoritativeTotal : (typeof total === 'number' ? total : parseFloat(total) || 0);
 
         // Create the Order document
         const orderData = {
@@ -66,7 +77,7 @@ export const createOrder = async (buyerId, items, total, vendorIds, buyerInfo = 
             buyerEmail: buyerInfo.email || "",
             shippingAddress: buyerInfo.address || "Local Pickup / Hyperlocal Delivery",
             items: normalizedItems, 
-            totalAmount: typeof total === 'number' ? total : parseFloat(total) || 0,
+            totalAmount: calculatedAmount,
             vendorIds: Array.from(uniqueVendorIds),
             status: "Placed",
             createdAt: new Date().toISOString(),
@@ -85,15 +96,24 @@ export const createOrder = async (buyerId, items, total, vendorIds, buyerInfo = 
 
 /**
  * Updates the status of an order (e.g., Placed -> Shipped -> Delivered -> Cancelled)
+ * Includes caller authorization verification (merchant involved in order or admin).
  */
-export const updateOrderStatus = async (orderId, newStatus) => {
+export const updateOrderStatus = async (orderId, newStatus, user = null) => {
     try {
         const orderRef = doc(db, "orders", orderId);
         const orderSnap = await getDoc(orderRef);
         
         let history = [];
         if (orderSnap.exists()) {
-            history = orderSnap.data().statusHistory || [];
+            const data = orderSnap.data();
+            if (user) {
+                const isAdmin = user.role === 'admin';
+                const isVendor = Array.isArray(data.vendorIds) && data.vendorIds.includes(user.uid);
+                if (!isAdmin && !isVendor) {
+                    return { success: false, error: "Unauthorized: You do not have permission to alter this order." };
+                }
+            }
+            history = data.statusHistory || [];
         }
 
         history.push({

@@ -13,7 +13,9 @@ const LOCAL_KEYWORD_MAP = {
 
 export const getSmartSearchKeywords = async (query) => {
     if (!query || typeof query !== "string") return [];
-    const cleanQuery = query.trim().toLowerCase();
+    // Sanitize query to prevent prompt injection and oversized payloads
+    const cleanQuery = query.replace(/[^a-zA-Z0-9\s-]/g, '').trim().slice(0, 50).toLowerCase();
+    if (!cleanQuery) return [];
 
     const prompt = `Act as an e-commerce assistant. Provide 5 comma-separated synonyms or related product categories for the search term: "${cleanQuery}". Only return the keywords separated by commas.`;
     const result = await askGemini(prompt);

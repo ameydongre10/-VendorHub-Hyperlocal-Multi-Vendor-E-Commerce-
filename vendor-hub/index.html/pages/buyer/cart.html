@@ -192,7 +192,7 @@
                 return `
                     <div class="cart-item">
                         <div class="cart-item-info">
-                            <img src="${item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'}" 
+                            <img src="${escapeHtml(item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60')}" 
                                  class="cart-item-img" alt="${escapeHtml(item.name)}">
                             <div class="cart-item-details">
                                 <strong>${escapeHtml(item.name)}</strong>
@@ -205,14 +205,14 @@
 
                         <div class="cart-item-actions">
                             <div class="qty-control">
-                                <button class="qty-btn" onclick="modifyQty('${item.id}', ${item.quantity - 1})">-</button>
+                                <button class="qty-btn" onclick="modifyQty('${escapeHtml(item.id)}', ${item.quantity - 1})">-</button>
                                 <span class="qty-display">${item.quantity}</span>
-                                <button class="qty-btn" onclick="modifyQty('${item.id}', ${item.quantity + 1})">+</button>
+                                <button class="qty-btn" onclick="modifyQty('${escapeHtml(item.id)}', ${item.quantity + 1})">+</button>
                             </div>
                             <div style="font-family:'Orbitron',sans-serif; color:var(--accent-primary); font-weight:700; min-width:80px; text-align:right;">
                                 ${lineTotalFormatted}
                             </div>
-                            <button class="btn-remove" onclick="removeCartItem('${item.id}')">✕</button>
+                            <button class="btn-remove" onclick="removeCartItem('${escapeHtml(item.id)}')">✕</button>
                         </div>
                     </div>
                 `;

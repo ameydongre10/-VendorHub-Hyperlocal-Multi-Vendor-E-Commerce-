@@ -147,7 +147,7 @@
         import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
         import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
-        import { showToast, formatCurrency } from "../../assets/js/utils/helpers.js";
+        import { showToast, formatCurrency, escapeHtml } from "../../assets/js/utils/helpers.js";
 
         initTheme();
         initParallax();
@@ -190,26 +190,26 @@
                 const priceFormatted = formatCurrency(p.price);
 
                 return `
-                    <div class="inventory-row" id="row-${p.id}">
+                    <div class="inventory-row" id="row-${escapeHtml(p.id)}">
                         <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                            <img src="${p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'}" 
+                            <img src="${escapeHtml(p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60')}" 
                                  style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid var(--border-subtle); flex-shrink:0;">
                             <div style="min-width:0;">
-                                <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</strong>
-                                <span style="font-size:0.8rem; color:var(--text-muted);">${p.category || 'General'}</span>
+                                <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</strong>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(p.category || 'General')}</span>
                             </div>
                         </div>
                         <span style="font-family:'Orbitron',sans-serif; color:var(--accent-primary); font-weight:700;">${priceFormatted}</span>
                         <div>
                             <div class="stock-control">
-                                <button class="btn-stock-adjust" onclick="adjustStock('${p.id}', -1)">-</button>
-                                <span id="stock-val-${p.id}" class="stock-badge-pill ${isLow ? 'badge-stock low-stock' : 'badge-stock in-stock'}">${stock} Units</span>
-                                <button class="btn-stock-adjust" onclick="adjustStock('${p.id}', 1)">+</button>
+                                <button class="btn-stock-adjust" onclick="adjustStock('${escapeHtml(p.id)}', -1)">-</button>
+                                <span id="stock-val-${escapeHtml(p.id)}" class="stock-badge-pill ${isLow ? 'badge-stock low-stock' : 'badge-stock in-stock'}">${stock} Units</span>
+                                <button class="btn-stock-adjust" onclick="adjustStock('${escapeHtml(p.id)}', 1)">+</button>
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <a href="../buyer/product-details.html?id=${p.id}" style="font-size:0.85rem; font-weight:600; padding:6px 10px; border:1px solid var(--border-subtle); border-radius:6px; color:var(--text-secondary);">Preview</a>
-                            <button class="btn-action-delete" onclick="handleDelete('${p.id}')">Decommission</button>
+                            <a href="../buyer/product-details.html?id=${escapeHtml(p.id)}" style="font-size:0.85rem; font-weight:600; padding:6px 10px; border:1px solid var(--border-subtle); border-radius:6px; color:var(--text-secondary);">Preview</a>
+                            <button class="btn-action-delete" onclick="handleDelete('${escapeHtml(p.id)}')">Decommission</button>
                         </div>
                     </div>
                 `;

@@ -108,7 +108,7 @@
             }
 
             authContainer.innerHTML = `
-                <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${user.name || 'User'}</span>
+                <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${escapeHtml(user.name || 'User')}</span>
                 <button id="logout-btn" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:0.85rem;">Logout</button>
             `;
             document.getElementById('logout-btn').addEventListener('click', () => {
@@ -147,11 +147,11 @@
                         <div class="order-card-buyer">
                             <div class="order-card-header">
                                 <div>
-                                    <strong style="font-size:1.1rem; color:var(--text-primary)">Order #${order.id.slice(-8)}</strong>
+                                    <strong style="font-size:1.1rem; color:var(--text-primary)">Order #${escapeHtml(order.id.slice(-8))}</strong>
                                     <span style="display:block; font-size:0.85rem; color:var(--text-muted); margin-top:2px;">Placed on ${formatDate(order.createdAt)}</span>
                                 </div>
                                 <div>
-                                    <span class="status-tag status-${status.toLowerCase()}">${status}</span>
+                                    <span class="status-tag status-${escapeHtml(status.toLowerCase())}">${escapeHtml(status)}</span>
                                 </div>
                             </div>
 
@@ -166,7 +166,7 @@
                                 </div>
 
                                 <div>
-                                    <a href="track-order.html?orderId=${order.id}" class="btn-card-details" style="padding:10px 18px; font-weight:700;">
+                                    <a href="track-order.html?orderId=${escapeHtml(order.id)}" class="btn-card-details" style="padding:10px 18px; font-weight:700;">
                                         Track Progress →
                                     </a>
                                 </div>

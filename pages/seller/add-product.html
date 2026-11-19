@@ -127,7 +127,7 @@
         import { logoutUser, checkAuthState } from "../../assets/js/modules/auth.js";
         import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
-        import { showToast } from "../../assets/js/utils/helpers.js";
+        import { showToast, escapeHtml } from "../../assets/js/utils/helpers.js";
 
         initTheme();
         initParallax();
@@ -160,7 +160,7 @@
                 reader.onload = function(event) {
                     previewContainer.innerHTML = `
                         <img src="${event.target.result}" style="max-height:160px; border-radius:8px; object-fit:contain; border:1px solid var(--accent-primary);">
-                        <div style="margin-top:8px; font-size:0.85rem; color:var(--accent-primary);">✓ ${file.name} ready for upload</div>
+                        <div style="margin-top:8px; font-size:0.85rem; color:var(--accent-primary);">✓ ${escapeHtml(file.name)} ready for upload</div>
                     `;
                 };
                 reader.readAsDataURL(file);

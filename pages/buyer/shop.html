@@ -76,6 +76,7 @@
         import { checkAuthState, logoutUser } from "../../assets/js/modules/auth.js";
         import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
+        import { escapeHtml } from "../../assets/js/utils/helpers.js";
 
         initTheme();
         initParallax();
@@ -90,7 +91,7 @@
         checkAuthState((user) => {
             if (user) {
                 authContainer.innerHTML = `
-                    <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${user.name || 'User'}</span>
+                    <span style="font-size:0.9rem; color:var(--text-muted); margin-right:6px;">Hi, ${escapeHtml(user.name || 'User')}</span>
                     <button id="logout-btn" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer; font-size:0.85rem;">Logout</button>
                 `;
                 document.getElementById('logout-btn').addEventListener('click', () => {
@@ -101,7 +102,7 @@
                     portalContainer.innerHTML = `<a href="../seller/dashboard.html" style="color:var(--accent-primary); font-weight:700;">Merchant Terminal</a>`;
                     roleBanner.style.display = 'flex';
                     roleBanner.innerHTML = `
-                        <span>Logged in as <strong>Merchant</strong> (${user.name || 'Seller'}). Manage inventory and customer orders in your dashboard.</span>
+                        <span>Logged in as <strong>Merchant</strong> (${escapeHtml(user.name || 'Seller')}). Manage inventory and customer orders in your dashboard.</span>
                         <a href="../seller/dashboard.html" class="btn-primary" style="padding:6px 14px; font-size:0.75rem;">Open Seller Portal →</a>
                     `;
                 } else if (user.role === 'admin') {

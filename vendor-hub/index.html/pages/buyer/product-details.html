@@ -204,7 +204,7 @@
             container.innerHTML = `
                 <div class="product-detail-layout">
                     <div class="product-gallery stat-card">
-                        <img src="${product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'}" alt="${escapeHtml(product.name)}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'">
+                        <img src="${escapeHtml(product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60')}" alt="${escapeHtml(product.name)}" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60'">
                     </div>
 
                     <div class="product-info-panel">

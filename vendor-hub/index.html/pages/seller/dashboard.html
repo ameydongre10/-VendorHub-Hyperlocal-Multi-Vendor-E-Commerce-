@@ -71,7 +71,7 @@
         import { getVendorOrders, updateOrderStatus } from "../../assets/js/modules/orders.js";
         import { initTheme, toggleTheme } from "../../assets/js/utils/theme-handler.js";
         import { initParallax } from "../../assets/js/utils/parallax.js";
-        import { showToast, formatCurrency, formatDate } from "../../assets/js/utils/helpers.js";
+        import { showToast, formatCurrency, formatDate, escapeHtml } from "../../assets/js/utils/helpers.js";
 
         initTheme();
         initParallax();
@@ -124,7 +124,7 @@
                             align-items: center;
                         `;
                         li.innerHTML = `
-                            <span>⚠️ <strong>${p.name}</strong> is running low (${p.stock} units remaining)</span>
+                            <span>⚠️ <strong>${escapeHtml(p.name)}</strong> is running low (${p.stock} units remaining)</span>
                             <a href="inventory.html" style="color:var(--danger); font-size:0.85rem; text-decoration:underline;">Update Stock →</a>
                         `;
                         list.appendChild(li);
@@ -161,11 +161,11 @@
                     <div class="order-item">
                         <div>
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
-                                <strong>Order #${shortId}</strong>
-                                <span class="status-tag status-${(order.status || 'placed').toLowerCase()}">${order.status || 'Placed'}</span>
+                                <strong>Order #${escapeHtml(shortId)}</strong>
+                                <span class="status-tag status-${escapeHtml((order.status || 'placed').toLowerCase())}">${escapeHtml(order.status || 'Placed')}</span>
                             </div>
                             <div style="font-size:0.85rem; color:var(--text-muted);">
-                                <span>Customer: ${order.buyerName || 'Buyer'}</span> • 
+                                <span>Customer: ${escapeHtml(order.buyerName || 'Buyer')}</span> • 
                                 <span>Date: ${dateFormatted}</span>
                             </div>
                             <div style="font-family:'Orbitron',sans-serif; color:var(--accent-primary); font-weight:700; margin-top:4px;">
