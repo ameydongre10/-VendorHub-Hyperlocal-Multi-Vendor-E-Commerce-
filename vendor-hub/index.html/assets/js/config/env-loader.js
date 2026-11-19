@@ -14,6 +14,15 @@
  *   const apiKey = getEnv("VITE_FIREBASE_API_KEY");
  */
 
+// If window.__env is not yet set, attempt dynamic import of ./__env.js (ESM native)
+if (typeof window !== 'undefined' && !window.__env) {
+  try {
+    await import("./__env.js");
+  } catch (_) {
+    // Graceful fallback when __env.js is not present
+  }
+}
+
 /**
  * Returns the value of an environment variable, or an empty string if not set.
  * @param {string} key  – e.g. "VITE_FIREBASE_API_KEY"

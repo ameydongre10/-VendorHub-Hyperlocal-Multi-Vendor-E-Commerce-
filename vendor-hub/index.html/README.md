@@ -232,9 +232,11 @@ Set these variables in **Vercel Project Settings → Environment Variables**:
 ```
 ├── LICENSE                                # Strict Proprietary Anti-Copy License
 ├── README.md                              # Project documentation & architectures
-├── test-project.js                        # Verification test suite (292 assertions)
+├── test-project.js                        # Verification test suite (343 assertions)
 ├── vercel-build.js                        # Multi-root pre-deployment pipeline
 ├── vercel.json                            # Routing, rewrites & clean URLs
+├── 404.html                               # Cyber-glass 404 error portal
+├── .nojekyll                              # GitHub Pages static asset bypass
 ├── package.json                           # Root scripts & configuration
 ├── index.html                             # Marketplace Landing Portal
 ├── assets/                                # Styles, scripts, and utilities

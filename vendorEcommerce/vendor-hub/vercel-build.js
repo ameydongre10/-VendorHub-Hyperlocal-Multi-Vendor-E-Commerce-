@@ -51,10 +51,34 @@ console.log(`[Vercel Build] Working Directory: ${process.cwd()}`);
 console.log(`[Vercel Build] Resolved Source:   ${SOURCE_DIR}`);
 console.log(`[Vercel Build] Target Output:     ${DIST_DIR}`);
 
+// Files and directories to exclude when staging web distribution
+const EXCLUDED_ENTRIES = new Set([
+  'node_modules',
+  '.git',
+  '.github',
+  'dist',
+  'vendor-hub',
+  'vendorEcommerce',
+  'test-project.js',
+  'firestore.rules',
+  'firebase.json',
+  '.env.example',
+  '.env.local.example',
+  '.gitignore',
+  'DEPLOYMENT.md',
+  'README.md',
+  'SECURITY.md',
+  'package.json',
+  'package-lock.json',
+  'vercel-build.js',
+  'vercel.json',
+  'LICENSE'
+]);
+
 function copyDir(src, dest) {
   if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') continue;
+    if (EXCLUDED_ENTRIES.has(entry.name)) continue;
     const srcPath  = path.join(src,  entry.name);
     const destPath = path.join(dest, entry.name);
     if (entry.isDirectory()) {
@@ -101,5 +125,12 @@ if (fs.existsSync(srcEnvDir)) {
   fs.writeFileSync(path.join(srcEnvDir, '__env.js'), envContent);
 }
 
+// Ensure .nojekyll exists in dist for GitHub Pages compatibility
+const distNoJekyll = path.join(DIST_DIR, '.nojekyll');
+if (!fs.existsSync(distNoJekyll)) {
+  fs.writeFileSync(distNoJekyll, '');
+}
+
 console.log('    ✓ __env.js runtime environment injected');
+console.log('    ✓ .nojekyll static compatibility confirmed');
 console.log('\n✅  Build complete — ready for Vercel deployment.\n');

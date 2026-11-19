@@ -59,7 +59,7 @@ for (const file of jsFiles) {
 
 // 2. Check all Relative Imports in JS and HTML
 console.log('\n--- 2. Validating Relative Imports & Module Resolutions ---');
-const allHtmlAndJs = getAllFiles(SRC, ['.js', '.html']);
+const allHtmlAndJs = getAllFiles(SRC, ['.js', '.html']).filter(f => !f.endsWith('test-project.js'));
 
 for (const file of allHtmlAndJs) {
     const content = fs.readFileSync(file, 'utf8');
@@ -110,10 +110,14 @@ try {
     const distIndex = path.join(ROOT, 'dist', 'index.html');
     const distEnv = path.join(ROOT, 'dist', 'assets', 'js', 'config', '__env.js');
     const distShop = path.join(ROOT, 'dist', 'pages', 'buyer', 'shop.html');
+    const dist404 = path.join(ROOT, 'dist', '404.html');
+    const distNoJekyll = path.join(ROOT, 'dist', '.nojekyll');
 
     assert(fs.existsSync(distIndex), 'dist/index.html generated');
     assert(fs.existsSync(distEnv), 'dist/assets/js/config/__env.js generated');
     assert(fs.existsSync(distShop), 'dist/pages/buyer/shop.html generated');
+    assert(fs.existsSync(dist404), 'dist/404.html generated');
+    assert(fs.existsSync(distNoJekyll), 'dist/.nojekyll generated');
 } catch (e) {
     assert(false, `vercel-build.js failed: ${e.message}`);
 }
@@ -143,6 +147,28 @@ try {
     assert(authCode.includes('normalizeEmail'), 'auth.js contains email normalization helper');
 } catch (e) {
     assert(false, `Authentication integrity check error: ${e.message}`);
+}
+
+// 5. Test Hosting Routing & Static Infrastructure
+console.log('\n--- 5. Testing Hosting & Routing Infrastructure ---');
+try {
+    const vercelConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+    assert(vercelConfig.outputDirectory === 'dist', 'vercel.json specifies dist outputDirectory');
+    assert(vercelConfig.cleanUrls === true, 'vercel.json enables cleanUrls');
+    assert(Array.isArray(vercelConfig.rewrites) && vercelConfig.rewrites.length >= 10, 'vercel.json provides friendly URL rewrites');
+    assert(Array.isArray(vercelConfig.headers) && vercelConfig.headers.length > 0, 'vercel.json provides security headers');
+
+    // Verify all rewrite destinations actually exist in dist
+    for (const rw of vercelConfig.rewrites) {
+        if (rw.source.includes('assets/|pages/')) continue;
+        const destPath = path.join(ROOT, 'dist', rw.destination.replace(/^\//, ''));
+        assert(fs.existsSync(destPath), `Rewrite ${rw.source} -> ${rw.destination} exists in dist`);
+    }
+
+    assert(fs.existsSync(path.join(ROOT, '.nojekyll')), 'Root .nojekyll present for GitHub Pages');
+    assert(fs.existsSync(path.join(ROOT, '404.html')), 'Root 404.html present for custom error handling');
+} catch (e) {
+    assert(false, `Hosting verification failed: ${e.message}`);
 }
 
 console.log(`\n========================================`);

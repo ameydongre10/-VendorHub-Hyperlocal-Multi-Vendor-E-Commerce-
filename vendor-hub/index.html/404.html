@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Node Unreachable | VendorHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <script src="assets/js/config/__env.js"></script>
+    <style>
+        .error-container {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        .error-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 3.5rem 2.5rem;
+            max-width: 600px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(16px);
+        }
+        .error-badge {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            padding: 6px 16px;
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: #ff6b6b;
+            letter-spacing: 1.5px;
+        }
+        .error-code {
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .error-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        .error-desc {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2.2rem;
+        }
+        .error-actions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                VendorHub <span class="brand-badge">HYPERLOCAL</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="pages/buyer/shop.html">🛍️ Shop</a></li>
+                    <li><a href="pages/auth/login.html">🔐 Login</a></li>
+                    <li><button id="theme-toggle" class="theme-toggle-btn">🌓 Theme</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="error-container">
+        <div class="error-card stat-card">
+            <div class="error-badge">⚠️ 404 // NODE UNREACHABLE</div>
+            <div class="error-code">404</div>
+            <h2 class="error-title">Requested Hyperlocal Coordinate Not Found</h2>
+            <p class="error-desc">
+                The terminal or resource you are attempting to access does not exist on this marketplace node or may have been relocated.
+            </p>
+            <div class="error-actions">
+                <a href="index.html" class="btn-primary" style="padding: 12px 24px;">
+                    ⚡ Return to Hub
+                </a>
+                <a href="pages/buyer/shop.html" class="btn-secondary" style="padding: 12px 24px;">
+                    🛍️ Explore Market
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initTheme, toggleTheme } from "./assets/js/utils/theme-handler.js";
+        import { initParallax } from "./assets/js/utils/parallax.js";
+
+        initTheme();
+        initParallax();
+
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+    </script>
+</body>
+</html>

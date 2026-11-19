@@ -3,9 +3,32 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/shop", "destination": "/pages/buyer/shop.html" },
+    { "source": "/cart", "destination": "/pages/buyer/cart.html" },
+    { "source": "/orders", "destination": "/pages/buyer/all-orders.html" },
+    { "source": "/all-orders", "destination": "/pages/buyer/all-orders.html" },
+    { "source": "/track-order", "destination": "/pages/buyer/track-order.html" },
+    { "source": "/product-details", "destination": "/pages/buyer/product-details.html" },
+    { "source": "/login", "destination": "/pages/auth/login.html" },
+    { "source": "/register", "destination": "/pages/auth/register.html" },
+    { "source": "/seller", "destination": "/pages/seller/dashboard.html" },
+    { "source": "/seller/dashboard", "destination": "/pages/seller/dashboard.html" },
+    { "source": "/seller/inventory", "destination": "/pages/seller/inventory.html" },
+    { "source": "/seller/add-product", "destination": "/pages/seller/add-product.html" },
+    { "source": "/admin", "destination": "/pages/admin/dashboard.html" },
+    { "source": "/admin/dashboard", "destination": "/pages/admin/dashboard.html" },
+    { "source": "/admin/analytics", "destination": "/pages/admin/analytics.html" },
+    { "source": "/admin/vendor-requests", "destination": "/pages/admin/vendor-requests.html" },
+    { "source": "/((?!assets/|pages/).*)", "destination": "/index.html" }
+  ],
+  "headers": [
     {
-      "source": "/((?!assets/|pages/).*)",
-      "destination": "/index.html"
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
     }
   ]
 }

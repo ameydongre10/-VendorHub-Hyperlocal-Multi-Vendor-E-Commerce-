@@ -1,0 +1,183 @@
+/**
+ * test-project.js
+ * Comprehensive automated verification script for VendorHub.
+ * Checks:
+ * 1. Syntax validity of all JS files.
+ * 2. Static import path resolutions across all JS files and HTML pages.
+ * 3. Builds the dist directory using vercel-build.js.
+ * 4. Verifies all assets and pages in dist/.
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+console.log('🧪 Starting VendorHub Verification Suite...\n');
+
+let errors = 0;
+let passed = 0;
+
+function assert(condition, message) {
+    if (condition) {
+        console.log(`  ✓ ${message}`);
+        passed++;
+    } else {
+        console.error(`  ❌ FAILED: ${message}`);
+        errors++;
+    }
+}
+
+const ROOT = __dirname;
+const SRC = path.join(ROOT, 'vendorEcommerce', 'vendor-hub');
+
+// 1. Check all JS files syntax
+console.log('--- 1. Testing JavaScript Files Syntax ---');
+function getAllFiles(dir, exts, list = []) {
+    if (!fs.existsSync(dir)) return list;
+    for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, f.name);
+        if (f.isDirectory()) {
+            getAllFiles(full, exts, list);
+        } else if (exts.some(ext => f.name.endsWith(ext))) {
+            list.push(full);
+        }
+    }
+    return list;
+}
+
+const jsFiles = getAllFiles(SRC, ['.js']);
+for (const file of jsFiles) {
+    const rel = path.relative(ROOT, file);
+    try {
+        // Node's --check flag validates syntax without running
+        execSync(`node --check "${file}"`);
+        assert(true, `Syntax check passed for ${rel}`);
+    } catch (e) {
+        assert(false, `Syntax error in ${rel}: ${e.message}`);
+    }
+}
+
+// 2. Check all Relative Imports in JS and HTML
+console.log('\n--- 2. Validating Relative Imports & Module Resolutions ---');
+const allHtmlAndJs = getAllFiles(SRC, ['.js', '.html']).filter(f => !f.endsWith('test-project.js'));
+
+for (const file of allHtmlAndJs) {
+    const content = fs.readFileSync(file, 'utf8');
+    const relFile = path.relative(ROOT, file);
+    const fileDir = path.dirname(file);
+
+    // Match import ... from "..."
+    const importRegex = /import\s+[\s\S]*?from\s+['"]([^'"]+)['"]/g;
+    let match;
+    while ((match = importRegex.exec(content)) !== null) {
+        const importPath = match[1];
+        if (importPath.startsWith('http://') || importPath.startsWith('https://')) {
+            // External CDN import (Firebase, etc.)
+            continue;
+        }
+
+        const resolved = path.resolve(fileDir, importPath);
+        const exists = fs.existsSync(resolved);
+        assert(exists, `${relFile} imports "${importPath}" -> ${exists ? 'RESOLVED' : 'MISSING (' + resolved + ')'}`);
+    }
+
+    // Match <script ... src="..."> and <link ... href="..."> in HTML
+    if (file.endsWith('.html')) {
+        const scriptSrcRegex = /<script\s+[^>]*src=['"]([^'"]+)['"]/g;
+        while ((match = scriptSrcRegex.exec(content)) !== null) {
+            const src = match[1];
+            if (src.startsWith('http://') || src.startsWith('https://')) continue;
+            const resolved = path.resolve(fileDir, src);
+            assert(fs.existsSync(resolved), `${relFile} script src "${src}" exists`);
+        }
+
+        const linkHrefRegex = /<link\s+[^>]*href=['"]([^'"]+)['"]/g;
+        while ((match = linkHrefRegex.exec(content)) !== null) {
+            const href = match[1];
+            if (href.startsWith('http://') || href.startsWith('https://')) continue;
+            const resolved = path.resolve(fileDir, href);
+            assert(fs.existsSync(resolved), `${relFile} stylesheet href "${href}" exists`);
+        }
+    }
+}
+
+// 3. Test vercel-build.js
+console.log('\n--- 3. Testing Vercel Build Script ---');
+try {
+    const buildOutput = execSync(`node vercel-build.js`, { cwd: ROOT }).toString();
+    assert(buildOutput.includes('Build complete'), 'vercel-build.js runs to completion');
+    
+    const distIndex = path.join(ROOT, 'dist', 'index.html');
+    const distEnv = path.join(ROOT, 'dist', 'assets', 'js', 'config', '__env.js');
+    const distShop = path.join(ROOT, 'dist', 'pages', 'buyer', 'shop.html');
+    const dist404 = path.join(ROOT, 'dist', '404.html');
+    const distNoJekyll = path.join(ROOT, 'dist', '.nojekyll');
+
+    assert(fs.existsSync(distIndex), 'dist/index.html generated');
+    assert(fs.existsSync(distEnv), 'dist/assets/js/config/__env.js generated');
+    assert(fs.existsSync(distShop), 'dist/pages/buyer/shop.html generated');
+    assert(fs.existsSync(dist404), 'dist/404.html generated');
+    assert(fs.existsSync(distNoJekyll), 'dist/.nojekyll generated');
+} catch (e) {
+    assert(false, `vercel-build.js failed: ${e.message}`);
+}
+
+// 4. Test Authentication Logic & Re-Login Flow
+console.log('\n--- 4. Testing Authentication & Re-Login Integrity ---');
+try {
+    // Setup a browser-like mock environment for testing auth functions in Node
+    const storage = {};
+    global.localStorage = {
+        getItem: (k) => storage[k] || null,
+        setItem: (k, v) => { storage[k] = String(v); },
+        removeItem: (k) => { delete storage[k]; },
+        clear: () => { Object.keys(storage).forEach(k => delete storage[k]); }
+    };
+    global.window = {
+        location: { href: '' }
+    };
+
+    // Read and verify DEMO_ACCOUNTS and normalization directly
+    const authCode = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'modules', 'auth.js'), 'utf8');
+    assert(authCode.includes('DEMO_ACCOUNTS'), 'auth.js exports DEMO_ACCOUNTS');
+    assert(authCode.includes('admin@vendorhub.com'), 'auth.js contains admin demo account');
+    assert(authCode.includes('seller@vendorhub.com'), 'auth.js contains seller demo account');
+    assert(authCode.includes('buyer@vendorhub.com'), 'auth.js contains buyer demo account');
+    assert(authCode.includes('vh_registered_users'), 'auth.js contains persistent local registry fallback');
+    assert(authCode.includes('normalizeEmail'), 'auth.js contains email normalization helper');
+} catch (e) {
+    assert(false, `Authentication integrity check error: ${e.message}`);
+}
+
+// 5. Test Hosting Routing & Static Infrastructure
+console.log('\n--- 5. Testing Hosting & Routing Infrastructure ---');
+try {
+    const vercelConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+    assert(vercelConfig.outputDirectory === 'dist', 'vercel.json specifies dist outputDirectory');
+    assert(vercelConfig.cleanUrls === true, 'vercel.json enables cleanUrls');
+    assert(Array.isArray(vercelConfig.rewrites) && vercelConfig.rewrites.length >= 10, 'vercel.json provides friendly URL rewrites');
+    assert(Array.isArray(vercelConfig.headers) && vercelConfig.headers.length > 0, 'vercel.json provides security headers');
+
+    // Verify all rewrite destinations actually exist in dist
+    for (const rw of vercelConfig.rewrites) {
+        if (rw.source.includes('assets/|pages/')) continue;
+        const destPath = path.join(ROOT, 'dist', rw.destination.replace(/^\//, ''));
+        assert(fs.existsSync(destPath), `Rewrite ${rw.source} -> ${rw.destination} exists in dist`);
+    }
+
+    assert(fs.existsSync(path.join(ROOT, '.nojekyll')), 'Root .nojekyll present for GitHub Pages');
+    assert(fs.existsSync(path.join(ROOT, '404.html')), 'Root 404.html present for custom error handling');
+} catch (e) {
+    assert(false, `Hosting verification failed: ${e.message}`);
+}
+
+console.log(`\n========================================`);
+console.log(`Test Results: ${passed} Passed, ${errors} Failed`);
+console.log(`========================================\n`);
+
+if (errors > 0) {
+    process.exit(1);
+} else {
+    console.log('🎉 ALL CHECKS PASSED PERFECTLY!\n');
+    process.exit(0);
+}
